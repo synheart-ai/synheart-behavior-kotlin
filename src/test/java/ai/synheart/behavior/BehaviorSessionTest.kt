@@ -26,11 +26,11 @@ class BehaviorSessionTest {
         assertEquals(5000L, summary.endTimestamp)
         assertEquals(4000L, summary.duration)
         assertEquals(100, summary.eventCount)
-        assertEquals(5.2, summary.averageTypingCadence, 0.001)
-        assertEquals(500.0, summary.averageScrollVelocity, 0.001)
+        assertEquals(5.2, summary.averageTypingCadence!!, 0.001)
+        assertEquals(500.0, summary.averageScrollVelocity!!, 0.001)
         assertEquals(3, summary.appSwitchCount)
-        assertEquals(0.85, summary.stabilityIndex, 0.001)
-        assertEquals(0.25, summary.fragmentationIndex, 0.001)
+        assertEquals(0.85, summary.stabilityIndex!!, 0.001)
+        assertEquals(0.25, summary.fragmentationIndex!!, 0.001)
     }
 
     @Test
@@ -162,8 +162,8 @@ class BehaviorSessionTest {
             stabilityIndex = 0.0,
             fragmentationIndex = 0.0
         )
-        assertEquals(0.0, summary1.stabilityIndex, 0.001)
-        assertEquals(0.0, summary1.fragmentationIndex, 0.001)
+        assertEquals(0.0, summary1.stabilityIndex!!, 0.001)
+        assertEquals(0.0, summary1.fragmentationIndex!!, 0.001)
 
         val summary2 = BehaviorSessionSummary(
             sessionId = "test",
@@ -173,8 +173,8 @@ class BehaviorSessionTest {
             stabilityIndex = 1.0,
             fragmentationIndex = 1.0
         )
-        assertEquals(1.0, summary2.stabilityIndex, 0.001)
-        assertEquals(1.0, summary2.fragmentationIndex, 0.001)
+        assertEquals(1.0, summary2.stabilityIndex!!, 0.001)
+        assertEquals(1.0, summary2.fragmentationIndex!!, 0.001)
     }
 
     @Test

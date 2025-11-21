@@ -25,18 +25,18 @@ class BehaviorStatsTest {
             timestamp = timestamp
         )
 
-        assertEquals(5.2, stats.typingCadence, 0.001)
-        assertEquals(150.0, stats.interKeyLatency, 0.001)
-        assertEquals(10, stats.burstLength)
-        assertEquals(500.0, stats.scrollVelocity, 0.001)
-        assertEquals(50.0, stats.scrollAcceleration, 0.001)
-        assertEquals(10.5, stats.scrollJitter, 0.001)
-        assertEquals(2.5, stats.tapRate, 0.001)
+        assertEquals(5.2, stats.typingCadence!!, 0.001)
+        assertEquals(150.0, stats.interKeyLatency!!, 0.001)
+        assertEquals(10, stats.burstLength!!)
+        assertEquals(500.0, stats.scrollVelocity!!, 0.001)
+        assertEquals(50.0, stats.scrollAcceleration!!, 0.001)
+        assertEquals(10.5, stats.scrollJitter!!, 0.001)
+        assertEquals(2.5, stats.tapRate!!, 0.001)
         assertEquals(3, stats.appSwitchesPerMinute)
-        assertEquals(120.0, stats.foregroundDuration, 0.001)
-        assertEquals(5.0, stats.idleGapSeconds, 0.001)
-        assertEquals(0.85, stats.stabilityIndex, 0.001)
-        assertEquals(0.25, stats.fragmentationIndex, 0.001)
+        assertEquals(120.0, stats.foregroundDuration!!, 0.001)
+        assertEquals(5.0, stats.idleGapSeconds!!, 0.001)
+        assertEquals(0.85, stats.stabilityIndex!!, 0.001)
+        assertEquals(0.25, stats.fragmentationIndex!!, 0.001)
         assertEquals(timestamp, stats.timestamp)
     }
 
@@ -117,16 +117,16 @@ class BehaviorStatsTest {
             fragmentationIndex = 0.0,
             timestamp = System.currentTimeMillis()
         )
-        assertEquals(0.0, stats1.stabilityIndex, 0.001)
-        assertEquals(0.0, stats1.fragmentationIndex, 0.001)
+        assertEquals(0.0, stats1.stabilityIndex!!, 0.001)
+        assertEquals(0.0, stats1.fragmentationIndex!!, 0.001)
 
         val stats2 = BehaviorStats(
             stabilityIndex = 1.0,
             fragmentationIndex = 1.0,
             timestamp = System.currentTimeMillis()
         )
-        assertEquals(1.0, stats2.stabilityIndex, 0.001)
-        assertEquals(1.0, stats2.fragmentationIndex, 0.001)
+        assertEquals(1.0, stats2.stabilityIndex!!, 0.001)
+        assertEquals(1.0, stats2.fragmentationIndex!!, 0.001)
     }
 
     @Test

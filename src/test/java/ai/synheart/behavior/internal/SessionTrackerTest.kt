@@ -51,7 +51,7 @@ class SessionTrackerTest {
         val inputStats = mapOf("typingCadence" to 5.2)
         val summary = tracker.getSessionSummary(inputStats, emptyMap(), emptyMap())
 
-        assertEquals(5.2, summary.averageTypingCadence, 0.001)
+        assertEquals(5.2, summary.averageTypingCadence!!, 0.001)
     }
 
     @Test
@@ -81,11 +81,11 @@ class SessionTrackerTest {
 
         val stats = tracker.getCurrentStats(inputStats, attentionStats, motionStats)
 
-        assertEquals(5.2, stats.typingCadence, 0.001)
-        assertEquals(300.0, stats.scrollVelocity, 0.001)
-        assertEquals(2.5, stats.tapRate, 0.001)
+        assertEquals(5.2, stats.typingCadence!!, 0.001)
+        assertEquals(300.0, stats.scrollVelocity!!, 0.001)
+        assertEquals(2.5, stats.tapRate!!, 0.001)
         assertEquals(3, stats.appSwitchesPerMinute)
-        assertEquals(0.85, stats.stabilityIndex, 0.001)
+        assertEquals(0.85, stats.stabilityIndex!!, 0.001)
     }
 
     @Test
@@ -121,7 +121,7 @@ class SessionTrackerTest {
         val summary = tracker.getSessionSummary(emptyMap(), emptyMap(), emptyMap())
 
         // Average of 5.0 and 7.0 = 6.0
-        assertEquals(6.0, summary.averageTypingCadence, 0.001)
+        assertEquals(6.0, summary.averageTypingCadence!!, 0.001)
     }
 
     @Test
@@ -145,7 +145,7 @@ class SessionTrackerTest {
         val summary = tracker.getSessionSummary(emptyMap(), emptyMap(), emptyMap())
 
         // Average of 200.0 and 400.0 = 300.0
-        assertEquals(300.0, summary.averageScrollVelocity, 0.001)
+        assertEquals(300.0, summary.averageScrollVelocity!!, 0.001)
     }
 
     @Test
@@ -168,8 +168,8 @@ class SessionTrackerTest {
 
         val summary = tracker.getSessionSummary(emptyMap(), emptyMap(), emptyMap())
 
-        assertEquals(0.9, summary.stabilityIndex, 0.001)
-        assertEquals(0.2, summary.fragmentationIndex, 0.001)
+        assertEquals(0.9, summary.stabilityIndex!!, 0.001)
+        assertEquals(0.2, summary.fragmentationIndex!!, 0.001)
     }
 
     @Test
