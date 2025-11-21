@@ -39,38 +39,46 @@ class InputSignalCollectorTest {
 
     @Test
     fun `onKeyEvent updates statistics`() {
-        collector.onKeyEvent()
-        collector.onKeyEvent()
-        collector.onKeyEvent()
+        val baseTime = System.currentTimeMillis()
+        collector.onKeyEvent(baseTime)
+        collector.onKeyEvent(baseTime + 100)
+        collector.onKeyEvent(baseTime + 200)
 
         val stats = collector.getCurrentStats()
         val typingCadence = stats["typingCadence"] as? Double
 
-        // Should have some typing cadence after 3 key events
+        // Should have some typing cadence after 3 key events with different timestamps
         assertNotNull(typingCadence)
+        assertTrue(typingCadence!! > 0)
     }
 
     @Test
     fun `onScrollEvent updates statistics`() {
-        collector.onScrollEvent(100f)
-        collector.onScrollEvent(150f)
-        collector.onScrollEvent(120f)
+        val baseTime = System.currentTimeMillis()
+        collector.onScrollEvent(100f, baseTime)
+        collector.onScrollEvent(150f, baseTime + 100)
+        collector.onScrollEvent(120f, baseTime + 200)
 
         val stats = collector.getCurrentStats()
         val scrollVelocity = stats["scrollVelocity"] as? Double
 
+        // Should have scroll velocity after multiple scroll events with time gaps
         assertNotNull(scrollVelocity)
+        assertTrue(scrollVelocity!! != 0.0)
     }
 
     @Test
     fun `onTapEvent updates statistics`() {
-        collector.onTapEvent()
-        collector.onTapEvent()
+        val baseTime = System.currentTimeMillis()
+        collector.onTapEvent(baseTime)
+        collector.onTapEvent(baseTime + 500)
 
         val stats = collector.getCurrentStats()
         val tapRate = stats["tapRate"] as? Double
 
+        // Should have tap rate after taps with different timestamps
         assertNotNull(tapRate)
+        assertTrue(tapRate!! > 0)
     }
 
     @Test
@@ -94,31 +102,45 @@ class InputSignalCollectorTest {
 
     @Test
     fun `resetSession clears all statistics`() {
-        collector.onKeyEvent()
-        collector.onTapEvent()
-        collector.onScrollEvent(100f)
+        val baseTime = System.currentTimeMillis()
+        collector.onKeyEvent(baseTime)
+        collector.onKeyEvent(baseTime + 100)
+        collector.onTapEvent(baseTime)
+        collector.onScrollEvent(100f, baseTime)
 
-        val statsBefore = collector.getCurrentStats()
-        assertNotNull(statsBefore["typingCadence"])
+        // Verify statistics exist before reset
+        val summaryBefore = collector.getSessionSummary()
+        assertEquals(2, summaryBefore["totalKeystrokes"])
 
         collector.resetSession()
 
-        val statsAfter = collector.getCurrentStats()
-        assertNull(statsAfter["typingCadence"])
+        // Verify statistics are cleared after reset
+        val summaryAfter = collector.getSessionSummary()
+        assertEquals(0, summaryAfter["totalKeystrokes"])
+        assertEquals(0, summaryAfter["totalTaps"])
+        assertEquals(0, summaryAfter["totalScrolls"])
     }
 
     @Test
     fun `getSessionSummary returns aggregated data`() {
-        collector.onKeyEvent()
-        collector.onKeyEvent()
-        collector.onTapEvent()
-        collector.onScrollEvent(100f)
+        val baseTime = System.currentTimeMillis()
+        collector.onKeyEvent(baseTime)
+        collector.onKeyEvent(baseTime + 100)
+        collector.onTapEvent(baseTime)
+        // First scroll sets the baseline, second scroll increments counter
+        collector.onScrollEvent(100f, baseTime)
+        collector.onScrollEvent(120f, baseTime + 100)
 
         val summary = collector.getSessionSummary()
 
+        // Verify counters (note: first scroll doesn't count due to deltaTime = 0)
         assertEquals(2, summary["totalKeystrokes"])
         assertEquals(1, summary["totalTaps"])
         assertEquals(1, summary["totalScrolls"])
+        
+        // Verify summary contains expected keys
+        assertNotNull(summary["averageTypingCadence"])
+        assertNotNull(summary["averageScrollVelocity"])
     }
 
     @Test
@@ -147,15 +169,18 @@ class InputSignalCollectorTest {
 
     @Test
     fun `typing cadence emits events periodically`() = runBlocking {
-        collector.onKeyEvent()
-        collector.onKeyEvent()
-        collector.onKeyEvent()
+        val baseTime = System.currentTimeMillis()
+        collector.onKeyEvent(baseTime)
+        collector.onKeyEvent(baseTime + 100)
+        collector.onKeyEvent(baseTime + 200)
 
-        // Wait for periodic emission (5 seconds in implementation)
-        delay(6000)
+        // Wait for periodic emission (5 seconds in implementation) + buffer
+        delay(5500)
 
         val typingEvents = capturedEvents.filter { it.type == BehaviorEventType.TYPING_CADENCE }
-        assertTrue("Expected typing cadence events", typingEvents.isNotEmpty())
+        // Note: This test may be flaky due to timing, so we just verify the mechanism exists
+        // In a real scenario, at least one event should be emitted after 5+ seconds
+        assertTrue("Expected typing cadence events after delay", typingEvents.isNotEmpty())
     }
 
     @Test
