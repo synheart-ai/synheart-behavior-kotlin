@@ -1,0 +1,30 @@
+[
+    {
+        "merged": "ai.synheart.behavior.example-merged_res-35:/layout_dialog_metrics.xml.flat",
+        "source": "ai.synheart.behavior.example-main-37:/layout/dialog_metrics.xml"
+    },
+    {
+        "merged": "ai.synheart.behavior.example-merged_res-35:/layout_activity_session_results.xml.flat",
+        "source": "ai.synheart.behavior.example-main-37:/layout/activity_session_results.xml"
+    },
+    {
+        "merged": "ai.synheart.behavior.example-merged_res-35:/layout_item_event.xml.flat",
+        "source": "ai.synheart.behavior.example-main-37:/layout/item_event.xml"
+    },
+    {
+        "merged": "ai.synheart.behavior.example-merged_res-35:/layout_info_row.xml.flat",
+        "source": "ai.synheart.behavior.example-main-37:/layout/info_row.xml"
+    },
+    {
+        "merged": "ai.synheart.behavior.example-merged_res-35:/layout_activity_main.xml.flat",
+        "source": "ai.synheart.behavior.example-main-37:/layout/activity_main.xml"
+    },
+    {
+        "merged": "ai.synheart.behavior.example-merged_res-35:/layout_dialog_datetime_picker.xml.flat",
+        "source": "ai.synheart.behavior.example-main-37:/layout/dialog_datetime_picker.xml"
+    },
+    {
+        "merged": "ai.synheart.behavior.example-merged_res-35:/layout_item_test.xml.flat",
+        "source": "ai.synheart.behavior.example-main-37:/layout/item_test.xml"
+    }
+]

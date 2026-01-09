@@ -20,3 +20,6 @@ dependencyResolutionManagement {
 
 rootProject.name = "synheart-behavior-android"
 
+include ':example'
+project(':example').projectDir = new File(rootDir, 'example')
+
