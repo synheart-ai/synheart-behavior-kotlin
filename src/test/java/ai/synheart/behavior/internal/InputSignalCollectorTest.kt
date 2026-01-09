@@ -95,8 +95,10 @@ class InputSignalCollectorTest {
         delay(300)
         collector.onKeyEvent(timestamp + 500)
 
-        // Check if burst event was emitted
-        val burstEvents = capturedEvents.filter { it.type == BehaviorEventType.TYPING_BURST }
+        // Check if burst event was emitted (TAP with burst_length)
+        val burstEvents = capturedEvents.filter { 
+            it.eventType == BehaviorEventType.TAP && it.metrics.containsKey("burst_length")
+        }
         assertTrue("Expected at least one burst event", burstEvents.isNotEmpty())
     }
 
@@ -147,12 +149,12 @@ class InputSignalCollectorTest {
     fun `drag event calculates velocity`() {
         collector.onDragEvent(0f, 0f, 100f, 0f, 1000L)
 
-        // Check if drag velocity event was emitted
-        val dragEvents = capturedEvents.filter { it.type == BehaviorEventType.DRAG_VELOCITY }
+        // Check if drag velocity event was emitted (SWIPE)
+        val dragEvents = capturedEvents.filter { it.eventType == BehaviorEventType.SWIPE }
         assertTrue("Expected drag velocity event", dragEvents.isNotEmpty())
 
-        val payload = dragEvents.first().payload
-        val velocity = payload["velocity_px_per_sec"] as? Float
+        val metrics = dragEvents.first().metrics
+        val velocity = metrics["velocity_px_per_sec"] as? Double? ?: (metrics["velocity_px_per_sec"] as? Float)?.toDouble()
         assertNotNull(velocity)
         assertTrue(velocity!! > 0)
     }
@@ -177,7 +179,9 @@ class InputSignalCollectorTest {
         // Wait for periodic emission (5 seconds in implementation) + buffer
         delay(5500)
 
-        val typingEvents = capturedEvents.filter { it.type == BehaviorEventType.TYPING_CADENCE }
+        val typingEvents = capturedEvents.filter { 
+            it.eventType == BehaviorEventType.TAP && it.metrics.containsKey("keys_per_second")
+        }
         // Note: This test may be flaky due to timing, so we just verify the mechanism exists
         // In a real scenario, at least one event should be emitted after 5+ seconds
         assertTrue("Expected typing cadence events after delay", typingEvents.isNotEmpty())
@@ -190,7 +194,12 @@ class InputSignalCollectorTest {
         // Wait for scroll stop detection (500ms in implementation)
         delay(600)
 
-        val scrollStopEvents = capturedEvents.filter { it.type == BehaviorEventType.SCROLL_STOP }
+        val scrollStopEvents = capturedEvents.filter { 
+            it.eventType == BehaviorEventType.SCROLL && !it.metrics.containsKey("velocity")
+        }
+        // Actually scroll stop emits SCROLL with timestamp in map, but check implementation details specific to stop
+        // Implementation: emitEvent(BehaviorEventType.SCROLL, mapOf("timestamp" to ...))
+        // So metrics would only contain timestamp.
         assertTrue("Expected scroll stop event", scrollStopEvents.isNotEmpty())
     }
 

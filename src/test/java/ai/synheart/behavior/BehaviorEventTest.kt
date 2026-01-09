@@ -2,124 +2,152 @@ package ai.synheart.behavior
 
 import org.junit.Test
 import org.junit.Assert.*
+import java.time.Instant
 
 class BehaviorEventTest {
 
-    @Test
-    fun `event creation preserves all fields`() {
-        val sessionId = "test-session"
-        val timestamp = System.currentTimeMillis()
-        val type = BehaviorEventType.TYPING_CADENCE
-        val payload = mapOf("keys_per_second" to 5.2, "count" to 10)
+    private val sessionId = "test-session"
+    private val timestampMock = "2023-01-01T10:00:00Z"
 
+    @Test
+    fun `event creation via constructor works`() {
         val event = BehaviorEvent(
             sessionId = sessionId,
-            timestamp = timestamp,
-            type = type,
-            payload = payload
+            timestamp = timestampMock,
+            eventType = BehaviorEventType.TAP,
+            metrics = mapOf("key" to "value")
         )
 
         assertEquals(sessionId, event.sessionId)
-        assertEquals(timestamp, event.timestamp)
-        assertEquals(type, event.type)
-        assertEquals(payload, event.payload)
+        assertEquals(timestampMock, event.timestamp)
+        assertEquals(BehaviorEventType.TAP, event.eventType)
+        assertEquals("value", event.metrics["key"])
     }
 
     @Test
-    fun `toMap converts event to correct structure`() {
+    fun `toJson returns correct map`() {
         val event = BehaviorEvent(
-            sessionId = "sess-123",
-            timestamp = 1234567890L,
-            type = BehaviorEventType.SCROLL_VELOCITY,
-            payload = mapOf("velocity_px_per_sec" to 100.5)
+            eventId = "evt_123",
+            sessionId = sessionId,
+            timestamp = timestampMock,
+            eventType = BehaviorEventType.SCROLL,
+            metrics = mapOf("velocity" to 100.0)
         )
 
-        val map = event.toMap()
+        val json = event.toJson()
+        val eventMap = json["event"] as Map<String, Any>
 
-        assertEquals("sess-123", map["session_id"])
-        assertEquals(1234567890L, map["timestamp"])
-        assertEquals("scroll_velocity", map["type"])
-        assertTrue(map["payload"] is Map<*, *>)
-
-        @Suppress("UNCHECKED_CAST")
-        val payload = map["payload"] as Map<String, Any>
-        assertEquals(100.5, payload["velocity_px_per_sec"])
+        assertEquals("evt_123", eventMap["event_id"])
+        assertEquals(sessionId, eventMap["session_id"])
+        assertEquals(timestampMock, eventMap["timestamp"])
+        assertEquals("scroll", eventMap["event_type"])
+        assertEquals(100.0, (eventMap["metrics"] as Map<String, Any>)["velocity"])
     }
 
     @Test
-    fun `event type names are correctly defined`() {
-        assertEquals("TYPING_CADENCE", BehaviorEventType.TYPING_CADENCE.name)
-        assertEquals("TYPING_BURST", BehaviorEventType.TYPING_BURST.name)
-        assertEquals("SCROLL_VELOCITY", BehaviorEventType.SCROLL_VELOCITY.name)
-        assertEquals("SCROLL_ACCELERATION", BehaviorEventType.SCROLL_ACCELERATION.name)
-        assertEquals("SCROLL_JITTER", BehaviorEventType.SCROLL_JITTER.name)
-        assertEquals("SCROLL_STOP", BehaviorEventType.SCROLL_STOP.name)
-        assertEquals("TAP_RATE", BehaviorEventType.TAP_RATE.name)
-        assertEquals("LONG_PRESS_RATE", BehaviorEventType.LONG_PRESS_RATE.name)
-        assertEquals("DRAG_VELOCITY", BehaviorEventType.DRAG_VELOCITY.name)
-        assertEquals("APP_SWITCH", BehaviorEventType.APP_SWITCH.name)
-        assertEquals("FOREGROUND_DURATION", BehaviorEventType.FOREGROUND_DURATION.name)
-        assertEquals("IDLE_GAP", BehaviorEventType.IDLE_GAP.name)
-        assertEquals("MICRO_IDLE", BehaviorEventType.MICRO_IDLE.name)
-        assertEquals("MID_IDLE", BehaviorEventType.MID_IDLE.name)
-        assertEquals("TASK_DROP_IDLE", BehaviorEventType.TASK_DROP_IDLE.name)
-        assertEquals("SESSION_STABILITY", BehaviorEventType.SESSION_STABILITY.name)
-        assertEquals("FRAGMENTATION_INDEX", BehaviorEventType.FRAGMENTATION_INDEX.name)
-        assertEquals("ORIENTATION_SHIFT", BehaviorEventType.ORIENTATION_SHIFT.name)
-        assertEquals("SHAKE_PATTERN", BehaviorEventType.SHAKE_PATTERN.name)
-        assertEquals("MICRO_MOVEMENT", BehaviorEventType.MICRO_MOVEMENT.name)
-    }
-
-    @Test
-    fun `event type converts to lowercase in toMap`() {
+    fun `toLegacyJson returns correct map`() {
         val event = BehaviorEvent(
-            sessionId = "test",
-            timestamp = 123L,
-            type = BehaviorEventType.APP_SWITCH,
-            payload = emptyMap()
+            sessionId = sessionId,
+            timestamp = timestampMock,
+            eventType = BehaviorEventType.TAP,
+            metrics = mapOf("duration" to 50)
         )
 
-        val map = event.toMap()
-        assertEquals("app_switch", map["type"])
+        val legacyJson = event.toLegacyJson()
+
+        assertEquals(sessionId, legacyJson["session_id"])
+        assertEquals("tap", legacyJson["type"])
+        // Check timestamp logic: converts ISO to millis
+        val expectedMillis = Instant.parse(timestampMock).toEpochMilli()
+        assertEquals(expectedMillis, legacyJson["timestamp"])
+        assertEquals(50, (legacyJson["payload"] as Map<String, Any>)["duration"])
     }
 
     @Test
-    fun `empty payload is handled correctly`() {
-        val event = BehaviorEvent(
-            sessionId = "test",
-            timestamp = 123L,
-            type = BehaviorEventType.IDLE_GAP,
-            payload = emptyMap()
+    fun `factory methods create correct events`() {
+        val scrollEvent = BehaviorEvent.scroll(sessionId, 100.0, 10.0, "down", false)
+        assertEquals(BehaviorEventType.SCROLL, scrollEvent.eventType)
+        assertEquals(100.0, scrollEvent.metrics["velocity"])
+
+        val tapEvent = BehaviorEvent.tap(sessionId, 50, false)
+        assertEquals(BehaviorEventType.TAP, tapEvent.eventType)
+        assertEquals(50, tapEvent.metrics["tap_duration_ms"])
+
+        val swipeEvent = BehaviorEvent.swipe(sessionId, "left", 200.0, 100, 500.0, 0.0)
+        assertEquals(BehaviorEventType.SWIPE, swipeEvent.eventType)
+        assertEquals("left", swipeEvent.metrics["direction"])
+        
+        val notifEvent = BehaviorEvent.notification(sessionId, "received")
+        assertEquals(BehaviorEventType.NOTIFICATION, notifEvent.eventType)
+        assertEquals("received", notifEvent.metrics["action"])
+        
+        val callEvent = BehaviorEvent.call(sessionId, "incoming")
+        assertEquals(BehaviorEventType.CALL, callEvent.eventType)
+        assertEquals("incoming", callEvent.metrics["action"])
+        
+        val typingEvent = BehaviorEvent.typing(
+            sessionId = sessionId,
+            typingTapCount = 50,
+            typingSpeed = 5.2,
+            meanInterTapIntervalMs = 192.3,
+            typingCadenceVariability = 0.15,
+            typingCadenceStability = 0.85,
+            typingGapCount = 3,
+            typingGapRatio = 0.1,
+            typingBurstiness = 0.3,
+            typingActivityRatio = 0.9,
+            typingInteractionIntensity = 0.8,
+            durationSeconds = 10,
+            startAt = "2023-01-01T10:00:00Z",
+            endAt = "2023-01-01T10:00:10Z",
+            deepTyping = true
         )
-
-        val map = event.toMap()
-        assertTrue(map["payload"] is Map<*, *>)
-
-        @Suppress("UNCHECKED_CAST")
-        val payload = map["payload"] as Map<String, Any>
-        assertTrue(payload.isEmpty())
+        assertEquals(BehaviorEventType.TYPING, typingEvent.eventType)
+        assertEquals(50, typingEvent.metrics["typing_tap_count"])
+        assertEquals(5.2, typingEvent.metrics["typing_speed"])
+        assertEquals(true, typingEvent.metrics["deep_typing"])
     }
 
     @Test
-    fun `payload with multiple types is preserved`() {
-        val payload = mapOf(
-            "string_value" to "test",
-            "int_value" to 42,
-            "double_value" to 3.14,
-            "boolean_value" to true
+    fun `fromJson parses correctly`() {
+        val json = mapOf(
+            "event" to mapOf(
+                "event_id" to "evt_123",
+                "session_id" to sessionId,
+                "timestamp" to timestampMock,
+                "event_type" to "swipe",
+                "metrics" to mapOf("direction" to "up")
+            )
         )
 
-        val event = BehaviorEvent(
-            sessionId = "test",
-            timestamp = 123L,
-            type = BehaviorEventType.TYPING_CADENCE,
-            payload = payload
+        val event = BehaviorEvent.fromJson(json)
+
+        assertEquals("evt_123", event.eventId)
+        assertEquals(sessionId, event.sessionId)
+        assertEquals(timestampMock, event.timestamp)
+        assertEquals(BehaviorEventType.SWIPE, event.eventType)
+        assertEquals("up", event.metrics["direction"])
+    }
+
+    @Test
+    fun `fromJson parses typing events correctly`() {
+        val json = mapOf(
+            "event" to mapOf(
+                "event_id" to "evt_typing_123",
+                "session_id" to sessionId,
+                "timestamp" to timestampMock,
+                "event_type" to "typing",
+                "metrics" to mapOf(
+                    "typing_tap_count" to 30,
+                    "typing_speed" to 4.5,
+                    "deep_typing" to true
+                )
+            )
         )
 
-        assertEquals(payload, event.payload)
-        assertEquals("test", event.payload["string_value"])
-        assertEquals(42, event.payload["int_value"])
-        assertEquals(3.14, event.payload["double_value"])
-        assertEquals(true, event.payload["boolean_value"])
+        val event = BehaviorEvent.fromJson(json)
+        assertEquals("evt_typing_123", event.eventId)
+        assertEquals(BehaviorEventType.TYPING, event.eventType)
+        assertEquals(30, event.metrics["typing_tap_count"])
     }
 }

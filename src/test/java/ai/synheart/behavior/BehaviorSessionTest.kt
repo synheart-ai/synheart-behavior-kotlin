@@ -2,239 +2,164 @@ package ai.synheart.behavior
 
 import org.junit.Test
 import org.junit.Assert.*
-import kotlin.test.assertFailsWith
 
 class BehaviorSessionTest {
 
     @Test
-    fun `session creation with all fields works`() {
+    fun `session summary creation works`() {
+        // Create nested objects
+        val deviceContext = DeviceContext(0.5, "portrait", 0)
+        val activitySummary = ActivitySummary(100, 3)
+        val deepFocusBlock = DeepFocusBlock("2023-01-01T12:00:00Z", "2023-01-01T12:30:00Z", 1800000)
+        val behavioralMetrics = BehavioralMetrics(
+            interactionIntensity = 0.5,
+            taskSwitchRate = 0.1,
+            taskSwitchCost = 500,
+            idleTimeRatio = 0.2,
+            activeTimeRatio = 0.8,
+            notificationLoad = 0.05,
+            burstiness = 0.3,
+            behavioralDistractionScore = 0.2,
+            focusHint = 0.8,
+            fragmentedIdleRatio = 0.1,
+            scrollJitterRate = 0.05,
+            deepFocusBlocks = listOf(deepFocusBlock)
+        )
+        val notificationSummary = NotificationSummary(10, 2, 0.2, 0.5, 5, 1)
+        val systemState = SystemState(true, false, true)
+
         val summary = BehaviorSessionSummary(
             sessionId = "test-session",
-            startTimestamp = 1000L,
-            endTimestamp = 5000L,
-            duration = 4000L,
-            eventCount = 100,
-            averageTypingCadence = 5.2,
-            averageScrollVelocity = 500.0,
-            appSwitchCount = 3,
-            stabilityIndex = 0.85,
-            fragmentationIndex = 0.25
+            startAt = "2023-01-01T10:00:00Z",
+            endAt = "2023-01-01T11:00:00Z",
+            microSession = false,
+            os = "Android 14",
+            appId = "com.example.app",
+            appName = "Example App",
+            sessionSpacing = 300,
+            motionState = null,
+            deviceContext = deviceContext,
+            activitySummary = activitySummary,
+            behavioralMetrics = behavioralMetrics,
+            notificationSummary = notificationSummary,
+            systemState = systemState
         )
 
         assertEquals("test-session", summary.sessionId)
-        assertEquals(1000L, summary.startTimestamp)
-        assertEquals(5000L, summary.endTimestamp)
-        assertEquals(4000L, summary.duration)
-        assertEquals(100, summary.eventCount)
-        assertEquals(5.2, summary.averageTypingCadence!!, 0.001)
-        assertEquals(500.0, summary.averageScrollVelocity!!, 0.001)
-        assertEquals(3, summary.appSwitchCount)
-        assertEquals(0.85, summary.stabilityIndex!!, 0.001)
-        assertEquals(0.25, summary.fragmentationIndex!!, 0.001)
+        assertEquals("2023-01-01T10:00:00Z", summary.startAt)
+        assertEquals("Android 14", summary.os)
+        assertEquals(0.5, summary.deviceContext.avgScreenBrightness, 0.001)
+        assertEquals(100, summary.activitySummary.totalEvents)
+        assertEquals(0.2, summary.behavioralMetrics.behavioralDistractionScore, 0.001)
     }
 
     @Test
-    fun `session with null optional fields works`() {
+    fun `durationMs calculation is correct`() {
+        // 1 hour difference
+        val summary = createDummySummary(
+            "2023-01-01T10:00:00Z",
+            "2023-01-01T11:00:00Z"
+        )
+        assertEquals(3600000, summary.durationMs)
+    }
+    
+    @Test
+    fun `durationMs handles invalid dates gracefully`() {
+        val summary = createDummySummary("invalid", "invalid")
+        assertEquals(0, summary.durationMs)
+    }
+
+    @Test
+    fun `session summary with typing and motion data works`() {
+        val typingMetrics = TypingMetrics(
+            startAt = "2023-01-01T10:00:00Z",
+            endAt = "2023-01-01T10:00:10Z",
+            duration = 10,
+            deepTyping = true,
+            typingTapCount = 50,
+            typingSpeed = 5.0,
+            meanInterTapIntervalMs = 200.0,
+            typingCadenceVariability = 0.1,
+            typingCadenceStability = 0.9,
+            typingGapCount = 2,
+            typingGapRatio = 0.05,
+            typingBurstiness = 0.2,
+            typingActivityRatio = 0.95,
+            typingInteractionIntensity = 0.85
+        )
+
+        val typingSummary = TypingSessionSummary(
+            typingSessionCount = 1,
+            averageKeystrokesPerSession = 50.0,
+            averageTypingSessionDuration = 10.0,
+            averageTypingSpeed = 5.0,
+            averageTypingGap = 200.0,
+            averageInterTapInterval = 200.0,
+            typingCadenceStability = 0.9,
+            burstinessOfTyping = 0.2,
+            totalTypingDuration = 10,
+            activeTypingRatio = 0.1,
+            typingContributionToInteractionIntensity = 0.05,
+            deepTypingBlocks = 1,
+            typingFragmentation = 0.05,
+            individualTypingSessions = listOf(typingMetrics)
+        )
+
+        val motionState = MotionState(
+            state = listOf("sitting", "standing"),
+            majorState = "sitting",
+            majorStatePct = 0.6,
+            mlModel = "motion_state_svc_classifier_v0.1",
+            confidence = 0.9
+        )
+
+        val motionData = listOf(
+            MotionDataPoint(
+                timestamp = "2023-01-01T10:00:00Z",
+                features = mapOf("tBodyAcc-mean()-X" to 0.25)
+            )
+        )
+
         val summary = BehaviorSessionSummary(
+            sessionId = "test-session",
+            startAt = "2023-01-01T10:00:00Z",
+            endAt = "2023-01-01T11:00:00Z",
+            microSession = false,
+            os = "Android 14",
+            sessionSpacing = 0,
+            motionState = motionState,
+            deviceContext = DeviceContext(0.5, "portrait", 0),
+            activitySummary = ActivitySummary(100, 3),
+            behavioralMetrics = BehavioralMetrics(
+                0.5, 0.1, 500, 0.2, 0.8, 0.05, 0.3, 0.2, 0.8, 0.1, 0.05, emptyList()
+            ),
+            notificationSummary = NotificationSummary(10, 2, 0.2, 0.5, 5, 1),
+            systemState = SystemState(true, false, true),
+            typingSessionSummary = typingSummary,
+            motionData = motionData
+        )
+
+        assertNotNull(summary.typingSessionSummary)
+        assertEquals(1, summary.typingSessionSummary!!.typingSessionCount)
+        assertNotNull(summary.motionState)
+        assertEquals("sitting", summary.motionState!!.majorState)
+        assertNotNull(summary.motionData)
+        assertEquals(1, summary.motionData!!.size)
+    }
+
+    private fun createDummySummary(start: String, end: String): BehaviorSessionSummary {
+         return BehaviorSessionSummary(
             sessionId = "test",
-            startTimestamp = 1000L,
-            endTimestamp = 2000L,
-            duration = 1000L
+            startAt = start,
+            endAt = end,
+            microSession = false,
+            os = "Android",
+            sessionSpacing = 0,
+            deviceContext = DeviceContext(0.0, "portrait", 0),
+            activitySummary = ActivitySummary(0, 0),
+            behavioralMetrics = BehavioralMetrics(0.0, 0.0, 0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, emptyList()),
+            notificationSummary = NotificationSummary(0, 0, 0.0, 0.0, 0, 0),
+            systemState = SystemState(false, false, false)
         )
-
-        assertEquals(0, summary.eventCount)
-        assertNull(summary.averageTypingCadence)
-        assertNull(summary.averageScrollVelocity)
-        assertEquals(0, summary.appSwitchCount)
-        assertNull(summary.stabilityIndex)
-        assertNull(summary.fragmentationIndex)
-    }
-
-    @Test
-    fun `endTimestamp before startTimestamp throws exception`() {
-        assertFailsWith<IllegalArgumentException> {
-            BehaviorSessionSummary(
-                sessionId = "test",
-                startTimestamp = 2000L,
-                endTimestamp = 1000L,
-                duration = 0L
-            )
-        }
-    }
-
-    @Test
-    fun `negative duration throws exception`() {
-        assertFailsWith<IllegalArgumentException> {
-            BehaviorSessionSummary(
-                sessionId = "test",
-                startTimestamp = 1000L,
-                endTimestamp = 2000L,
-                duration = -1L
-            )
-        }
-    }
-
-    @Test
-    fun `negative eventCount throws exception`() {
-        assertFailsWith<IllegalArgumentException> {
-            BehaviorSessionSummary(
-                sessionId = "test",
-                startTimestamp = 1000L,
-                endTimestamp = 2000L,
-                duration = 1000L,
-                eventCount = -1
-            )
-        }
-    }
-
-    @Test
-    fun `negative appSwitchCount throws exception`() {
-        assertFailsWith<IllegalArgumentException> {
-            BehaviorSessionSummary(
-                sessionId = "test",
-                startTimestamp = 1000L,
-                endTimestamp = 2000L,
-                duration = 1000L,
-                appSwitchCount = -1
-            )
-        }
-    }
-
-    @Test
-    fun `stabilityIndex below zero throws exception`() {
-        assertFailsWith<IllegalArgumentException> {
-            BehaviorSessionSummary(
-                sessionId = "test",
-                startTimestamp = 1000L,
-                endTimestamp = 2000L,
-                duration = 1000L,
-                stabilityIndex = -0.1
-            )
-        }
-    }
-
-    @Test
-    fun `stabilityIndex above one throws exception`() {
-        assertFailsWith<IllegalArgumentException> {
-            BehaviorSessionSummary(
-                sessionId = "test",
-                startTimestamp = 1000L,
-                endTimestamp = 2000L,
-                duration = 1000L,
-                stabilityIndex = 1.1
-            )
-        }
-    }
-
-    @Test
-    fun `fragmentationIndex below zero throws exception`() {
-        assertFailsWith<IllegalArgumentException> {
-            BehaviorSessionSummary(
-                sessionId = "test",
-                startTimestamp = 1000L,
-                endTimestamp = 2000L,
-                duration = 1000L,
-                fragmentationIndex = -0.1
-            )
-        }
-    }
-
-    @Test
-    fun `fragmentationIndex above one throws exception`() {
-        assertFailsWith<IllegalArgumentException> {
-            BehaviorSessionSummary(
-                sessionId = "test",
-                startTimestamp = 1000L,
-                endTimestamp = 2000L,
-                duration = 1000L,
-                fragmentationIndex = 1.1
-            )
-        }
-    }
-
-    @Test
-    fun `boundary values for indices are valid`() {
-        val summary1 = BehaviorSessionSummary(
-            sessionId = "test",
-            startTimestamp = 1000L,
-            endTimestamp = 2000L,
-            duration = 1000L,
-            stabilityIndex = 0.0,
-            fragmentationIndex = 0.0
-        )
-        assertEquals(0.0, summary1.stabilityIndex!!, 0.001)
-        assertEquals(0.0, summary1.fragmentationIndex!!, 0.001)
-
-        val summary2 = BehaviorSessionSummary(
-            sessionId = "test",
-            startTimestamp = 1000L,
-            endTimestamp = 2000L,
-            duration = 1000L,
-            stabilityIndex = 1.0,
-            fragmentationIndex = 1.0
-        )
-        assertEquals(1.0, summary2.stabilityIndex!!, 0.001)
-        assertEquals(1.0, summary2.fragmentationIndex!!, 0.001)
-    }
-
-    @Test
-    fun `equal timestamps are valid`() {
-        val summary = BehaviorSessionSummary(
-            sessionId = "test",
-            startTimestamp = 1000L,
-            endTimestamp = 1000L,
-            duration = 0L
-        )
-        assertEquals(1000L, summary.startTimestamp)
-        assertEquals(1000L, summary.endTimestamp)
-    }
-
-    @Test
-    fun `toMap includes all fields`() {
-        val summary = BehaviorSessionSummary(
-            sessionId = "test-123",
-            startTimestamp = 1000L,
-            endTimestamp = 5000L,
-            duration = 4000L,
-            eventCount = 50,
-            averageTypingCadence = 5.0,
-            averageScrollVelocity = 300.0,
-            appSwitchCount = 2,
-            stabilityIndex = 0.9,
-            fragmentationIndex = 0.1
-        )
-
-        val map = summary.toMap()
-
-        assertEquals("test-123", map["session_id"])
-        assertEquals(1000L, map["start_timestamp"])
-        assertEquals(5000L, map["end_timestamp"])
-        assertEquals(4000L, map["duration"])
-        assertEquals(50, map["event_count"])
-        assertEquals(5.0, map["average_typing_cadence"])
-        assertEquals(300.0, map["average_scroll_velocity"])
-        assertEquals(2, map["app_switch_count"])
-        assertEquals(0.9, map["stability_index"])
-        assertEquals(0.1, map["fragmentation_index"])
-    }
-
-    @Test
-    fun `toMap handles null optional fields`() {
-        val summary = BehaviorSessionSummary(
-            sessionId = "test",
-            startTimestamp = 1000L,
-            endTimestamp = 2000L,
-            duration = 1000L
-        )
-
-        val map = summary.toMap()
-
-        assertEquals("test", map["session_id"])
-        assertEquals(0, map["event_count"])
-        assertNull(map["average_typing_cadence"])
-        assertNull(map["average_scroll_velocity"])
-        assertEquals(0, map["app_switch_count"])
-        assertNull(map["stability_index"])
-        assertNull(map["fragmentation_index"])
     }
 }
