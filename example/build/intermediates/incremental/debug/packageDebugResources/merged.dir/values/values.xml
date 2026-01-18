@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="deep_purple">#673AB7</color>
+    <color name="inverse_primary">#D0BCFF</color>
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+    <color name="white">#FFFFFFFF</color>
+    <string name="app_name">Synheart Behavior Example</string>
+    <string name="app_switch_count">App Switch Count</string>
+    <string name="app_switches_per_minute">App Switches/min</string>
+    <string name="average_scroll_velocity">Average Scroll Velocity</string>
+    <string name="average_typing_cadence">Average Typing Cadence</string>
+    <string name="call_permission_message">To track call events, please enable phone state access.\n\nOn Android: A permission dialog will appear.</string>
+    <string name="call_permission_title">Call Permission</string>
+    <string name="cancel">Cancel</string>
+    <string name="current_stats">Current Stats</string>
+    <string name="duration">Duration</string>
+    <string name="enable">Enable</string>
+    <string name="end_session">End Session</string>
+    <string name="end_time">End Time</string>
+    <string name="events_timeline">Events Timeline</string>
+    <string name="failed_to_end_session">Failed to end session: %1$s</string>
+    <string name="failed_to_get_stats">Failed to get stats: %1$s</string>
+    <string name="failed_to_initialize">Failed to initialize SDK: %1$s</string>
+    <string name="failed_to_start_session">Failed to start session: %1$s</string>
+    <string name="fragmentation_index">Fragmentation Index</string>
+    <string name="hint_text">Type here to test keystroke collection...</string>
+    <string name="initialized">Initialized</string>
+    <string name="na">N/A</string>
+    <string name="no_active_session">No active session to end</string>
+    <string name="no_events">No events collected during this session.</string>
+    <string name="not_initialized">Not Initialized</string>
+    <string name="notification_permission_message">To track notification events, please enable notification access.\n\nOn Android: You will be taken to system settings to enable notification access.</string>
+    <string name="notification_permission_title">Notification Permission</string>
+    <string name="permission_granted">Permission already granted.</string>
+    <string name="refresh_stats">Refresh Stats</string>
+    <string name="request_call_permission">Request Call Permission</string>
+    <string name="request_notification_permission">Request Notification Permission</string>
+    <string name="scroll_hint">Scroll down to see more content</string>
+    <string name="scroll_velocity">Scroll Velocity</string>
+    <string name="sdk_status">SDK Status</string>
+    <string name="session_active">Session Active: %1$s</string>
+    <string name="session_id">Session ID</string>
+    <string name="session_information">Session Information</string>
+    <string name="session_results">Session Results</string>
+    <string name="stability_index">Stability Index</string>
+    <string name="start_session">Start Session</string>
+    <string name="start_time">Start Time</string>
+    <string name="test_area">Test Area</string>
+    <string name="total_events">Total Events</string>
+    <string name="typing_cadence">Typing Cadence</string>
+    <style name="Theme.SynheartBehaviorExample" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        
+        <item name="colorPrimary">@color/deep_purple</item>
+        <item name="colorPrimaryVariant">@color/purple_700</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorSecondary">@color/teal_200</item>
+        <item name="colorOnSecondary">@color/black</item>
+        <item name="colorPrimaryContainer">@color/inverse_primary</item>
+    </style>
+</resources>
