@@ -37,6 +37,44 @@ dependencies {
 </dependency>
 ```
 
+### Optional: synheart-flux (HSI metrics)
+
+If you want **HSI-compliant behavioral metrics** (e.g., distraction score, focus hint, burstiness, baselines), install the optional native `synheart-flux` library.
+
+1. Download `synheart-flux-android.zip` from the [synheart-flux releases](https://github.com/synheart-ai/synheart-flux/releases)
+2. Extract and copy the `.so` files into:
+
+```
+synheart-behavior-kotlin/
+└── src/
+    └── main/
+        └── jniLibs/
+            ├── arm64-v8a/
+            │   └── libsynheart_flux.so
+            ├── armeabi-v7a/
+            │   └── libsynheart_flux.so
+            ├── x86/
+            │   └── libsynheart_flux.so
+            └── x86_64/
+                └── libsynheart_flux.so
+```
+
+3. Verify Flux is available:
+
+```kotlin
+import ai.synheart.behavior.SynheartBehavior
+import ai.synheart.behavior.FluxBridge
+
+val sdk = SynheartBehavior.create(applicationContext)
+sdk.initialize()
+
+println("synheart-flux available: ${sdk.isFluxAvailable}")
+// or directly:
+println("synheart-flux available: ${FluxBridge.isAvailable}")
+```
+
+For full details (usage, troubleshooting, building from source), see [`SYNHEART_FLUX_INTEGRATION.md`](SYNHEART_FLUX_INTEGRATION.md).
+
 ## Quick Start
 
 Here's a complete example to get you started:

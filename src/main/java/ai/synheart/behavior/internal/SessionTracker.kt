@@ -16,6 +16,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.math.exp
 import kotlin.math.sqrt
+import java.util.TimeZone
 
 /**
  * Manages session state and tracks all events for comprehensive summary generation. Matches Flutter
@@ -236,6 +237,72 @@ internal class SessionTracker(
                 typingSessionSummary = typingSessionSummary,
                 motionData = motionData
         )
+    }
+
+    /**
+     * End the current session and return HSI-compliant output using synheart-flux.
+     *
+     * If synheart-flux is not available, returns null. Use `getSessionSummary` as fallback.
+     *
+     * @param fluxProcessor Optional stateful processor with baselines (if null, uses stateless)
+     */
+    @Synchronized
+    fun getSessionSummaryWithHsi(
+            inputSummary: Map<String, Any?>,
+            attentionSummary: Map<String, Any?>,
+            gestureSummary: Map<String, Any?>,
+            motionData: List<MotionDataPoint>? = null,
+            fluxProcessor: FluxBehaviorProcessor? = null
+    ): HsiBehaviorPayload? {
+        if (!FluxBridge.isAvailable) {
+            android.util.Log.d(TAG, "synheart-flux not available for HSI output")
+            return null
+        }
+
+        val endTimestamp = System.currentTimeMillis()
+        val deviceId = Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
+                ?: "android-device"
+        val timezone = TimeZone.getDefault().id
+
+        // Convert events to Flux JSON format
+        val events = allEvents.toList()
+        val fluxJson = convertEventsToFluxJson(
+                sessionId = sessionId,
+                deviceId = deviceId,
+                timezone = timezone,
+                startTimeMs = startTimestamp,
+                endTimeMs = endTimestamp,
+                events = events
+        )
+
+        // Compute HSI metrics using Rust
+        var hsiPayload: HsiBehaviorPayload? = null
+
+        if (fluxProcessor != null) {
+            // Use stateful processor with baselines
+            try {
+                val hsiJson = fluxProcessor.process(fluxJson)
+                hsiPayload = parseHsiJson(hsiJson)
+                android.util.Log.d(TAG, "Successfully computed HSI metrics using synheart-flux (stateful)")
+            } catch (e: Exception) {
+                android.util.Log.w(TAG, "Stateful processing failed: ${e.message}")
+            }
+        }
+
+        // Fallback to stateless if stateful failed
+        if (hsiPayload == null) {
+            val hsiJson = FluxBridge.behaviorToHsi(fluxJson)
+            if (hsiJson != null) {
+                hsiPayload = parseHsiJson(hsiJson)
+                android.util.Log.d(TAG, "Successfully computed HSI metrics using synheart-flux (stateless)")
+            }
+        }
+
+        return hsiPayload
+    }
+
+    companion object {
+        private const val TAG = "SessionTracker"
     }
 
     // Compute behavioral metrics matching Flutter SDK's computeBehavioralMetrics

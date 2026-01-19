@@ -1,0 +1,13 @@
+# Placeholder for synheart-flux native libraries
+#
+# Place libsynheart_flux.so files in the architecture-specific subdirectories:
+# - arm64-v8a/libsynheart_flux.so (64-bit ARM)
+# - armeabi-v7a/libsynheart_flux.so (32-bit ARM)
+# - x86/libsynheart_flux.so (32-bit x86)
+# - x86_64/libsynheart_flux.so (64-bit x86)
+#
+# Build from synheart-flux repository:
+#   cd synheart-flux
+#   bash scripts/build-android.sh dist/android
+#
+# Then copy the .so files to this directory.

@@ -236,3 +236,11 @@ After running the example app:
 ## Integration into Your App
 
 See the main [README.md](../README.md) for integration instructions.
+
+### Optional: synheart-flux (HSI metrics)
+
+If you want **HSI-compliant metrics output** in your app (via the optional native `synheart-flux` library), follow the install steps in [`SYNHEART_FLUX_INTEGRATION.md`](../SYNHEART_FLUX_INTEGRATION.md) and then verify availability with:
+
+```kotlin
+println("synheart-flux available: ${behavior.isFluxAvailable}")
+```
