@@ -288,8 +288,12 @@ internal class AttentionSignalCollector(
 
             totalBackgroundTime += backgroundDuration
 
-            // App switch is tracked internally (for session summaries) but not emitted as an event
+            // Emit app switch event if we had a background period
             // Note: App switch count is incremented when going to background, not when returning
+            // App switch events are sent to Flux for task switch calculations, but not counted as one of the 6 event types
+            if (backgroundDuration > 0) {
+                emitAppSwitchEvent(backgroundDuration)
+            }
         }
 
         // Clean old timestamps (keep last 60 seconds)
@@ -350,13 +354,19 @@ internal class AttentionSignalCollector(
         cleanOldIdleGaps(System.currentTimeMillis(), 300000)
     }
 
-    // App switch events removed - app switches are tracked internally but not emitted as events
-    // private fun emitAppSwitchEvent(backgroundDuration: Long) {
-    //     emitEvent(
-    //             BehaviorEventType.APP_SWITCH,
-    //             mapOf("background_duration_ms" to backgroundDuration.toInt())
-    //     )
-    // }
+    private fun emitAppSwitchEvent(backgroundDuration: Long) {
+        // Emit app switch event with from_app_id and to_app_id (empty strings if not available)
+        // Flux accepts empty strings for these fields
+        // App switch events are sent to Flux for task switch calculations, but not counted as one of the 6 event types
+        emitEvent(
+                BehaviorEventType.APP_SWITCH,
+                mapOf(
+                        "from_app_id" to "", // We don't track the previous app, but Flux accepts empty string
+                        "to_app_id" to "", // We don't track the current app, but Flux accepts empty string
+                        "background_duration_ms" to backgroundDuration.toInt()
+                )
+        )
+    }
 
     // These metrics are tracked internally for stats calculation but NOT emitted as events
     // (matching Flutter SDK behavior - see EXAMPLE_APP_GUIDE.md)

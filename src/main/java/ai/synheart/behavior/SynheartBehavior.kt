@@ -145,7 +145,7 @@ private constructor(private val context: Context, private var config: BehaviorCo
 
     /** Check if synheart-flux is available for HSI-compliant metrics computation. */
     val isFluxAvailable: Boolean
-        get() = FluxBridge.isAvailable
+        get() = FluxBridge.isAvailable()
 
     // Track views to auto-attach collectors when sessions start
     private val attachedViews =

@@ -22,6 +22,7 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.*
+import kotlin.math.roundToLong
 
 class SessionResultsActivity : AppCompatActivity() {
 
@@ -322,6 +323,51 @@ class SessionResultsActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.callIgnoredLabel)?.text = "Calls Ignored"
         findViewById<TextView>(R.id.callIgnoredValue)?.text = notifSummary.callIgnored.toString()
 
+        // Typing Session Summary
+        summary.typingSessionSummary?.let { typingSummary ->
+            findViewById<MaterialCardView>(R.id.typingSessionSummaryCard)?.visibility = View.VISIBLE
+
+            findViewById<TextView>(R.id.typingSessionCountLabel)?.text = "Typing Sessions"
+            findViewById<TextView>(R.id.typingSessionCountValue)?.text = typingSummary.typingSessionCount.toString()
+            findViewById<TextView>(R.id.avgKeystrokesPerSessionLabel)?.text = "Avg Keystrokes/Session"
+            findViewById<TextView>(R.id.avgKeystrokesPerSessionValue)?.text =
+                    String.format("%.1f", typingSummary.averageKeystrokesPerSession)
+            findViewById<TextView>(R.id.avgTypingSessionDurationLabel)?.text = "Avg Session Duration"
+            findViewById<TextView>(R.id.avgTypingSessionDurationValue)?.text =
+                    formatMs((typingSummary.averageTypingSessionDuration * 1000).toLong())
+            findViewById<TextView>(R.id.avgTypingSpeedLabel)?.text = "Avg Typing Speed"
+            findViewById<TextView>(R.id.avgTypingSpeedValue)?.text =
+                    String.format("%.2f taps/s", typingSummary.averageTypingSpeed)
+            findViewById<TextView>(R.id.avgTypingGapLabel)?.text = "Avg Typing Gap"
+            findViewById<TextView>(R.id.avgTypingGapValue)?.text =
+                    formatMs(typingSummary.averageTypingGap.roundToLong())
+            findViewById<TextView>(R.id.avgInterTapIntervalLabel)?.text = "Avg Inter-tap Interval"
+            findViewById<TextView>(R.id.avgInterTapIntervalValue)?.text =
+                    formatMs(typingSummary.averageInterTapInterval.roundToLong())
+            findViewById<TextView>(R.id.typingCadenceStabilityLabel)?.text = "Cadence Stability"
+            findViewById<TextView>(R.id.typingCadenceStabilityValue)?.text =
+                    String.format("%.3f", typingSummary.typingCadenceStability)
+            findViewById<TextView>(R.id.burstinessOfTypingLabel)?.text = "Burstiness"
+            findViewById<TextView>(R.id.burstinessOfTypingValue)?.text =
+                    String.format("%.3f", typingSummary.burstinessOfTyping)
+            findViewById<TextView>(R.id.totalTypingDurationLabel)?.text = "Total Typing Duration"
+            findViewById<TextView>(R.id.totalTypingDurationValue)?.text =
+                    formatMs(typingSummary.totalTypingDuration * 1000L)
+            findViewById<TextView>(R.id.activeTypingRatioLabel)?.text = "Active Typing Ratio"
+            findViewById<TextView>(R.id.activeTypingRatioValue)?.text =
+                    String.format("%.3f", typingSummary.activeTypingRatio)
+            findViewById<TextView>(R.id.typingContributionToIntensityLabel)?.text = "Typing Contribution to Intensity"
+            findViewById<TextView>(R.id.typingContributionToIntensityValue)?.text =
+                    String.format("%.3f", typingSummary.typingContributionToInteractionIntensity)
+            findViewById<TextView>(R.id.deepTypingBlocksLabel)?.text = "Deep Typing Blocks"
+            findViewById<TextView>(R.id.deepTypingBlocksValue)?.text = typingSummary.deepTypingBlocks.toString()
+            findViewById<TextView>(R.id.typingFragmentationLabel)?.text = "Typing Fragmentation"
+            findViewById<TextView>(R.id.typingFragmentationValue)?.text =
+                    String.format("%.3f", typingSummary.typingFragmentation)
+        } ?: run {
+            findViewById<MaterialCardView>(R.id.typingSessionSummaryCard)?.visibility = View.GONE
+        }
+
         // System State
         val systemState = summary.systemState
         findViewById<TextView>(R.id.internetStateLabel)?.text = "Internet"
@@ -352,7 +398,9 @@ class SessionResultsActivity : AppCompatActivity() {
             return
         }
         eventsRecyclerView.visibility = View.VISIBLE
-        val adapter = EventsAdapter(events, sessionStartTime)
+        // Filter out APP_SWITCH events from UI (they're tracked internally but not displayed)
+        val filteredEvents = events.filter { it.eventType != BehaviorEventType.APP_SWITCH }
+        val adapter = EventsAdapter(filteredEvents, sessionStartTime)
         eventsRecyclerView.layoutManager = LinearLayoutManager(this)
         eventsRecyclerView.adapter = adapter
     }
@@ -1071,6 +1119,8 @@ class EventsAdapter(private val events: List<BehaviorEvent>, private val session
             BehaviorEventType.NOTIFICATION -> 0xFF9C27B0.toInt() // Purple
             BehaviorEventType.CALL -> 0xFFF44336.toInt() // Red
             BehaviorEventType.TYPING -> 0xFF00BCD4.toInt() // Cyan
+            // APP_SWITCH events are filtered out from UI display, but kept for exhaustiveness
+            BehaviorEventType.APP_SWITCH -> 0xFFE91E63.toInt() // Pink
         }
     }
 }

@@ -4,17 +4,24 @@ This document explains how to integrate synheart-flux (Rust library) with Synhea
 
 ## Overview
 
-The SynheartBehavior SDK now supports using synheart-flux for computing behavioral metrics. When synheart-flux is available, the SDK provides additional HSI-compliant output including:
+The SynheartBehavior SDK **requires** synheart-flux for computing behavioral metrics. All behavioral and typing metric calculations are performed by the Rust library, ensuring:
+- HSI compliance
+- Cross-platform consistency (same Rust code on iOS and Android)
+- Baseline support across sessions
+- Deterministic, reproducible results
+
+The SDK uses synheart-flux for computing:
 - Distraction score and focus hint
-- Burstiness (Barabasi formula)
+- Burstiness (Barabási formula)
 - Task switch rate (exponential saturation)
 - Notification load (exponential saturation)
 - Scroll jitter rate
 - Deep focus blocks
 - Interaction intensity
-- Rolling baselines across sessions
+- Typing session metrics (typing session count, average keystrokes, typing speed, etc.)
+- And all other HSI-compliant metrics
 
-If synheart-flux is not available, the SDK continues to work normally with Kotlin-based metrics computation.
+**Note**: synheart-flux is **required**. If the library is not available, session ending will fail with an error.
 
 ## Benefits
 
@@ -27,26 +34,24 @@ If synheart-flux is not available, the SDK continues to work normally with Kotli
 
 ### Step 1: Download the Native Libraries
 
-Download `synheart-flux-android.zip` from the [synheart-flux releases](https://github.com/synheart-ai/synheart-flux/releases).
+Download the synheart-flux Android libraries from the [synheart-flux releases](https://github.com/synheart-ai/synheart-flux/releases):
+- `synheart-flux-android-jniLibs.tar.gz`
 
 ### Step 2: Add to Your Project
 
-Extract the zip and place the `.so` files in the jniLibs directory:
+Extract and place the `.so` files:
 
 ```
-synheart-behavior-kotlin/
-└── src/
-    └── main/
-        └── jniLibs/
-            ├── arm64-v8a/
-            │   └── libsynheart_flux.so
-            ├── armeabi-v7a/
-            │   └── libsynheart_flux.so
-            ├── x86/
-            │   └── libsynheart_flux.so
-            └── x86_64/
-                └── libsynheart_flux.so
+android/src/main/jniLibs/
+├── arm64-v8a/
+│   └── libsynheart_flux.so
+├── armeabi-v7a/
+│   └── libsynheart_flux.so
+└── x86_64/
+    └── libsynheart_flux.so
 ```
+
+**Note**: The JNI bridge library (`libflux_jni_bridge.so`) is automatically built by the SDK's CMake configuration. You only need to provide `libsynheart_flux.so`.
 
 ### Step 3: Verify Integration
 
@@ -58,7 +63,7 @@ val sdk = SynheartBehavior.create(applicationContext)
 sdk.initialize()
 
 println("synheart-flux available: ${sdk.isFluxAvailable}")
-// or directly: FluxBridge.isAvailable
+// or directly: FluxBridge.isAvailable()
 ```
 
 ## Usage
@@ -82,27 +87,16 @@ val session = sdk.startSession()
 
 // ... user interacts with app ...
 
-// End session with HSI output (uses synheart-flux if available)
-val hsiPayload = sdk.endSessionWithHsi(session.sessionId)
-if (hsiPayload != null) {
-    // Access HSI-compliant metrics
-    val window = hsiPayload.behaviorWindows.firstOrNull()
-    window?.let {
-        println("Distraction score: ${it.behavior.distractionScore}")
-        println("Focus hint: ${it.behavior.focusHint}")
-        println("Burstiness: ${it.behavior.burstiness}")
-        println("Task switch rate: ${it.behavior.taskSwitchRate}")
+// End session - uses synheart-flux exclusively
+val summary = sdk.endSession(session.sessionId)
+// All metrics in summary.behavioralMetrics are computed by Flux
+println("Distraction score: ${summary.behavioralMetrics.behavioralDistractionScore}")
+println("Focus hint: ${summary.behavioralMetrics.focusHint}")
+println("Burstiness: ${summary.behavioralMetrics.burstiness}")
+println("Task switch rate: ${summary.behavioralMetrics.taskSwitchRate}")
 
-        it.baseline?.let { baseline ->
-            println("Baseline distraction: ${baseline.distraction}")
-            println("Sessions in baseline: ${baseline.sessionsInBaseline}")
-        }
-    }
-} else {
-    // Fallback to basic summary
-    val summary = sdk.endSession(session.sessionId)
-    println("Event count: ${summary.activitySummary.totalEvents}")
-}
+// Typing metrics are also from Flux
+println("Typing sessions: ${summary.typingSessionSummary?.typingSessionCount ?: 0}")
 ```
 
 ### Using FluxBehaviorProcessor Directly
@@ -113,10 +107,9 @@ For more control, use FluxBehaviorProcessor directly:
 import ai.synheart.behavior.FluxBridge
 import ai.synheart.behavior.FluxBehaviorProcessor
 
-// Check availability
-if (!FluxBridge.isAvailable) {
-    println("synheart-flux not available")
-    return
+// Check availability (should always be true if libraries are installed)
+if (!FluxBridge.isAvailable()) {
+    throw IllegalStateException("synheart-flux is required but not available")
 }
 
 // Create a stateful processor with baselines
@@ -193,14 +186,15 @@ Check Logcat for these messages:
 **Success:**
 ```
 FluxBridge: Successfully loaded libsynheart_flux.so
-FluxBridge: JNI methods available - synheart-flux ready
-SessionTracker: Successfully computed HSI metrics using synheart-flux (stateful)
+FluxBridge: Successfully loaded libflux_jni_bridge.so
+FluxBridge: JNI methods available
+SessionTracker: Successfully computed metrics using synheart-flux - 15ms
 ```
 
-**Not Available:**
+**Error (SDK will fail):**
 ```
-FluxBridge: Failed to load libsynheart_flux.so: ...
-FluxBridge: Falling back to Kotlin metric computation
+FluxBridge: Failed to load native libraries: ...
+IllegalStateException: Failed to load synheart-flux native libraries...
 ```
 
 ## HSI Output Format
@@ -269,7 +263,10 @@ Ensure the `.so` files are:
 // Check if synheart-flux is available
 val isFluxAvailable: Boolean
 
-// End session with HSI output (returns null if Flux unavailable)
+// End session - uses Flux exclusively (throws exception if Flux unavailable)
+fun endSession(sessionId: String): BehaviorSessionSummary
+
+// End session with HSI output (optional, for advanced use cases)
 fun endSessionWithHsi(sessionId: String, fluxProcessor: FluxBehaviorProcessor? = null): HsiBehaviorPayload?
 ```
 
@@ -279,7 +276,7 @@ fun endSessionWithHsi(sessionId: String, fluxProcessor: FluxBehaviorProcessor? =
 // Singleton access
 object FluxBridge {
     // Check availability
-    val isAvailable: Boolean
+    fun isAvailable(): Boolean
 
     // Stateless processing
     fun behaviorToHsi(sessionJson: String): String?

@@ -471,6 +471,97 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- Typing Session Summary Card (conditional) -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/typingSessionSummaryCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:visibility="gone"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="2dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Typing Session Summary"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="12dp" />
+
+                <LinearLayout android:id="@+id/typingSessionCountRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/typingSessionCountLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/typingSessionCountValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/avgKeystrokesPerSessionRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/avgKeystrokesPerSessionLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/avgKeystrokesPerSessionValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/avgTypingSessionDurationRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/avgTypingSessionDurationLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/avgTypingSessionDurationValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/avgTypingSpeedRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/avgTypingSpeedLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/avgTypingSpeedValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/avgTypingGapRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/avgTypingGapLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/avgTypingGapValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/avgInterTapIntervalRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/avgInterTapIntervalLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/avgInterTapIntervalValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/typingCadenceStabilityRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/typingCadenceStabilityLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/typingCadenceStabilityValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/burstinessOfTypingRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/burstinessOfTypingLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/burstinessOfTypingValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/totalTypingDurationRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/totalTypingDurationLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/totalTypingDurationValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/activeTypingRatioRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/activeTypingRatioLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/activeTypingRatioValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/typingContributionToIntensityRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/typingContributionToIntensityLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/typingContributionToIntensityValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/deepTypingBlocksRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/deepTypingBlocksLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/deepTypingBlocksValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/typingFragmentationRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                    <TextView android:id="@+id/typingFragmentationLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/typingFragmentationValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
         <!-- System State Card -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
