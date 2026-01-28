@@ -11,7 +11,8 @@ enum class BehaviorEventType {
         SWIPE,
         NOTIFICATION,
         CALL,
-        TYPING
+        TYPING,
+        APP_SWITCH
 }
 
 /** A single behavioral event emitted by the SDK. Matches Flutter SDK BehaviorEvent structure. */

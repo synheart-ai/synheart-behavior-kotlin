@@ -396,33 +396,85 @@ internal class MotionStateInference(private val context: Context) {
                         throw IllegalStateException("Failed to extract model outputs")
                     }
 
-                    // Get predicted label - handle different output formats
+                    // Get predicted label - extract from tensor properly (matching Dart SDK)
+                    // The SDK should NOT calculate motion state - just pass raw data to model and use what it returns
                     val predictedLabel =
                             try {
+                                // Try to extract string directly from tensor
+                                // The model outputs labels as strings, so we need to extract them properly
                                 val labelValue = labelOutput.value
+                                
+                                // Log what we're getting for debugging
+                                if (predictionCount == 1) {
+                                    Log.d(
+                                            "MotionStateInference",
+                                            "Label output type: ${labelValue?.javaClass?.canonicalName}"
+                                    )
+                                    Log.d(
+                                            "MotionStateInference",
+                                            "Label output value: $labelValue"
+                                    )
+                                }
+                                
                                 when {
                                     labelValue is Array<*> && labelValue.isNotEmpty() -> {
                                         val firstElement = labelValue[0]
                                         when {
-                                            firstElement is String -> firstElement
+                                            firstElement is String -> {
+                                                if (predictionCount == 1) {
+                                                    Log.d(
+                                                            "MotionStateInference",
+                                                            "Extracted label from array: $firstElement"
+                                                    )
+                                                }
+                                                firstElement
+                                            }
                                             firstElement is Number -> {
                                                 // If it's a numeric index, map it to the label
                                                 val index = firstElement.toInt()
-                                                if (index >= 0 && index < classLabels.size) {
+                                                val mappedLabel = if (index >= 0 && index < classLabels.size) {
                                                     classLabels[index]
                                                 } else {
                                                     classLabels[0]
                                                 }
+                                                if (predictionCount == 1) {
+                                                    Log.d(
+                                                            "MotionStateInference",
+                                                            "Mapped numeric index $index to label: $mappedLabel"
+                                                    )
+                                                }
+                                                mappedLabel
                                             }
-                                            else -> classLabels[0]
+                                            else -> {
+                                                Log.w(
+                                                        "MotionStateInference",
+                                                        "Unexpected array element type: ${firstElement?.javaClass?.simpleName}"
+                                                )
+                                                classLabels[0]
+                                            }
                                         }
                                     }
-                                    labelValue is String -> labelValue
+                                    labelValue is String -> {
+                                        if (predictionCount == 1) {
+                                            Log.d(
+                                                    "MotionStateInference",
+                                                    "Extracted label directly: $labelValue"
+                                            )
+                                        }
+                                        labelValue
+                                    }
                                     else -> {
                                         Log.w(
                                                 "MotionStateInference",
-                                                "Unexpected label output type: ${labelValue?.javaClass?.simpleName}"
+                                                "Unexpected label output type: ${labelValue?.javaClass?.canonicalName}, defaulting to ${classLabels[0]}"
                                         )
+                                        // Log the actual value for debugging
+                                        if (labelValue != null) {
+                                            Log.w(
+                                                    "MotionStateInference",
+                                                    "Label value content: $labelValue"
+                                            )
+                                        }
                                         classLabels[0]
                                     }
                                 }
@@ -491,21 +543,22 @@ internal class MotionStateInference(private val context: Context) {
                     inputTensor.close()
                     result.close()
 
-                    // Find confidence (score for predicted label)
+                    // Use the text label from model output directly (as confirmed by ML engineer)
+                    // The SDK should NOT calculate motion state - just pass raw data to model and use what it returns
+                    // The model outputs labels in uppercase (LAYING, MOVING, SITTING, STANDING)
+                    // Convert to lowercase only for consistency with expected output format
+                    val outputLabel = predictedLabel.uppercase().lowercase()
+                    
+                    // Find confidence (score for predicted label from model output)
                     var confidence = 0.0
                     val predictedIndex = classLabels.indexOf(predictedLabel.uppercase())
                     if (predictedIndex >= 0 && predictedIndex < probabilities.size) {
                         // Use model's raw score directly - no clamping
                         confidence = probabilities[predictedIndex]
                     } else if (probabilities.isNotEmpty()) {
-                        // Use highest score directly - no clamping
+                        // Fallback: use highest score if label index not found
                         confidence = probabilities.maxOrNull() ?: 0.0
                     }
-
-                    // Use text label from model output directly (as confirmed by ML engineer)
-                    // The model outputs labels in uppercase (LAYING, MOVING, SITTING, STANDING)
-                    // Convert to lowercase only for consistency with expected output format
-                    val outputLabel = predictedLabel.uppercase().lowercase()
 
                     // Log model scores when movement is detected but STANDING is predicted
                     // This helps diagnose why MOVING class isn't being selected (matching Dart SDK)

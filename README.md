@@ -23,7 +23,7 @@ Add to your `build.gradle`:
 
 ```gradle
 dependencies {
-    implementation 'ai.synheart:behavior:0.2.0'
+    implementation 'ai.synheart:behavior:0.3.0'
 }
 ```
 
@@ -33,9 +33,44 @@ dependencies {
 <dependency>
     <groupId>ai.synheart</groupId>
     <artifactId>behavior</artifactId>
-    <version>0.2.0</version>
+    <version>0.3.0</version>
 </dependency>
 ```
+
+### Required: synheart-flux (HSI metrics)
+
+The SDK **requires** the native `synheart-flux` library for computing all behavioral and typing metrics. Install it as follows:
+
+1. Download `synheart-flux-android-jniLibs.tar.gz` from the [synheart-flux releases](https://github.com/synheart-ai/synheart-flux/releases)
+2. Extract and copy the `.so` files into:
+
+```
+src/main/jniLibs/
+├── arm64-v8a/
+│   └── libsynheart_flux.so
+├── armeabi-v7a/
+│   └── libsynheart_flux.so
+└── x86_64/
+    └── libsynheart_flux.so
+```
+
+**Note**: The JNI bridge library (`libflux_jni_bridge.so`) is automatically built by the SDK's CMake configuration. You only need to provide `libsynheart_flux.so`.
+
+3. Verify Flux is available:
+
+```kotlin
+import ai.synheart.behavior.SynheartBehavior
+import ai.synheart.behavior.FluxBridge
+
+val sdk = SynheartBehavior.create(applicationContext)
+sdk.initialize()
+
+println("synheart-flux available: ${sdk.isFluxAvailable}")
+// or directly:
+println("synheart-flux available: ${FluxBridge.isAvailable()}")
+```
+
+For full details (usage, troubleshooting, building from source), see [`SYNHEART_FLUX_INTEGRATION.md`](SYNHEART_FLUX_INTEGRATION.md).
 
 ## Quick Start
 
@@ -199,6 +234,8 @@ The SDK collects six types of behavioral events:
 - **Notification**: Received, opened, ignored (requires permission)
 - **Call**: Answered, ignored, dismissed (requires permission)
 - **Typing**: Comprehensive typing session metrics including speed, cadence, burstiness, and deep typing detection
+
+**Note**: App switch events (`APP_SWITCH`) are tracked internally and sent to Flux for task switch calculations, but are not displayed as one of the six event types in event streams or UI. App switch count is available in session summaries via `activitySummary.appSwitchCount`.
 
 Each event includes:
 

@@ -5,6 +5,59 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2025-01-21
+
+### BREAKING CHANGES
+
+- **Flux is now required**: The SDK now requires `synheart-flux` (Rust library) for all behavioral and typing metric calculations. The SDK will fail to initialize if Flux libraries are not available.
+- **Removed native Kotlin calculations**: All native Kotlin calculation functions have been removed (~500+ lines). All metrics are now computed exclusively by `synheart-flux`.
+
+### Added
+
+- **JNI Bridge**: Added C++ JNI bridge (`libflux_jni_bridge.so`) for calling Rust functions from Kotlin
+- **CMake Build Configuration**: Added CMake support for building the JNI bridge library
+- **Flux Integration**: Complete integration with `synheart-flux` for HSI-compliant metric computation
+- **Detailed Typing Metrics**: Enhanced typing event conversion to include all metrics required by Flux (`typing_tap_count`, `mean_inter_tap_interval_ms`, `typing_burstiness`, etc.)
+- **APP_SWITCH Event Type**: Added `APP_SWITCH` to `BehaviorEventType` enum for internal tracking (events are sent to Flux but not displayed in UI)
+
+### Changed
+
+- **FluxBridge**: Updated to load both `libsynheart_flux.so` and `libflux_jni_bridge.so`
+- **SessionTracker**: Now uses Flux exclusively for all metric calculations via `computeBehavioralMetricsWithFlux()`
+- **Metric Extraction**: Behavioral and typing metrics are now extracted from Flux HSI JSON output
+- **Error Handling**: SDK throws `IllegalStateException` if Flux is not available (no fallback)
+- **APP_SWITCH Events**: App switch events are tracked internally and sent to Flux for task switch calculations, but are not counted as one of the 6 displayed event types and are filtered out from UI event lists
+- **Motion State Inference**: Improved label extraction from ONNX model output with enhanced logging for debugging
+- **Event Display**: APP_SWITCH events are automatically filtered out from event timeline displays in example app
+
+### Removed
+
+- **Native Calculation Functions**: Removed all native Kotlin calculation functions:
+  - `computeBehavioralMetrics()`
+  - `computeBurstiness()`
+  - `computeIdleRatio()`
+  - `computeFragmentedIdleRatio()`
+  - `computeScrollJitterRate()`
+  - `computeDeepFocusBlocks()`
+  - `computeTypingSessionSummary()`
+  - `computeTypingSessionSummaryObject()`
+- **Unused Imports**: Removed `kotlin.math.exp` and `kotlin.math.sqrt` imports
+
+### Migration Guide
+
+If you're upgrading from version 0.2.0:
+
+1. **Install Flux Libraries**: Download and install `synheart-flux-android-jniLibs.tar.gz` from [synheart-flux releases](https://github.com/synheart-ai/synheart-flux/releases)
+2. **Update Build Configuration**: Ensure your `build.gradle` includes CMake configuration (already included in the SDK)
+3. **Remove Fallback Code**: Remove any code that checks `isFluxAvailable` and provides fallback behavior - Flux is now required
+4. **Update API Calls**: `FluxBridge.isAvailable` is now a function: `FluxBridge.isAvailable()`
+
+### Documentation
+
+- Updated `SYNHEART_FLUX_INTEGRATION.md` to reflect Flux as required
+- Updated `README.md` installation instructions
+- Added migration notes
+
 ## [0.2.0] - 2025-01-09
 
 ### Added

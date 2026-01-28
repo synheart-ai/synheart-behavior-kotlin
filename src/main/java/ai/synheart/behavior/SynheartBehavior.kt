@@ -143,6 +143,10 @@ private constructor(private val context: Context, private var config: BehaviorCo
     val currentSessionId: String?
         get() = lock.read { currentSessionTracker?.sessionId }
 
+    /** Check if synheart-flux is available for HSI-compliant metrics computation. */
+    val isFluxAvailable: Boolean
+        get() = FluxBridge.isAvailable()
+
     // Track views to auto-attach collectors when sessions start
     private val attachedViews =
             java.util.Collections.synchronizedSet(
@@ -417,6 +421,88 @@ private constructor(private val context: Context, private var config: BehaviorCo
                 // windowAggregator.clear()
 
                 return summary
+            }
+
+    /**
+     * End a session and return HSI-compliant output using synheart-flux.
+     *
+     * If synheart-flux is not available, returns null. Use `endSession` as fallback.
+     *
+     * @param sessionId The session ID to end
+     * @param fluxProcessor Optional stateful processor with baselines
+     * @return HSI payload if Flux is available, null otherwise
+     */
+    fun endSessionWithHsi(sessionId: String, fluxProcessor: FluxBehaviorProcessor? = null): HsiBehaviorPayload? =
+            lock.write {
+                checkInitialized()
+
+                val tracker =
+                        currentSessionTracker
+                                ?: throw IllegalStateException("No active session found")
+
+                if (tracker.sessionId != sessionId) {
+                    throw IllegalArgumentException(
+                            "Session ID mismatch: active=${tracker.sessionId}, requested=$sessionId"
+                    )
+                }
+
+                // Stop all collectors
+                inputCollector?.stop()
+                attentionCollector?.stop()
+                gestureCollector?.stop()
+
+                // Stop motion collector and get motion data
+                val motionData =
+                        motionCollector?.stopSession()
+                                ?: emptyList<MotionSignalCollector.MotionDataPoint>()
+
+                // Sync app switch count from AttentionSignalCollector
+                attentionCollector?.let { collector ->
+                    val currentAppSwitchCount = collector.getAppSwitchCount()
+                    if (currentAppSwitchCount > 0) {
+                        tracker.updateAppSwitchCount(currentAppSwitchCount)
+                    }
+                }
+
+                // Get summaries from all collectors
+                val inputSummary = inputCollector?.getSessionSummary() ?: emptyMap()
+                val attentionSummary = attentionCollector?.getSessionSummary() ?: emptyMap()
+                val gestureSummary = gestureCollector?.getSessionSummary() ?: emptyMap()
+
+                // Convert motion data to SDK MotionDataPoint format
+                val motionDataForSummary: List<MotionDataPoint>? =
+                        if (config.enableMotionLite && motionData.isNotEmpty()) {
+                            motionData.map { dataPoint ->
+                                MotionDataPoint(
+                                        timestamp = dataPoint.timestamp,
+                                        features = dataPoint.features
+                                )
+                            }
+                        } else null
+
+                // Try to get HSI payload
+                val hsiPayload = tracker.getSessionSummaryWithHsi(
+                        inputSummary,
+                        attentionSummary,
+                        gestureSummary,
+                        motionDataForSummary,
+                        fluxProcessor
+                )
+
+                // Update lastAppUseTime
+                lastAppUseTime = System.currentTimeMillis()
+
+                // Store ended session
+                endedSessions[tracker.sessionId] = tracker
+
+                // Clean up collectors
+                inputCollector = null
+                attentionCollector = null
+                gestureCollector = null
+                motionCollector = null
+                currentSessionTracker = null
+
+                return@write hsiPayload
             }
 
     /** Get current rolling statistics snapshot. */
