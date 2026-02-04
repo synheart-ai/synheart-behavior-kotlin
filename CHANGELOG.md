@@ -58,6 +58,13 @@ If you're upgrading from version 0.2.0:
 - Updated `README.md` installation instructions
 - Added migration notes
 
+## [0.3.1] - 2026-02-04
+
+### Changed
+
+- **Publishing coordinates**: Publish as `ai.synheart:synheart-behavior` (previously `ai.synheart:behavior`)
+- **License metadata**: Updated Maven Central POM license to Apache-2.0
+
 ## [0.2.0] - 2025-01-09
 
 ### Added
