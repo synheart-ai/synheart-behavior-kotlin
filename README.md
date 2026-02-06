@@ -1,6 +1,6 @@
 # Synheart Behavioral SDK for Android
 
-[![Maven Central](https://img.shields.io/maven-central/v/ai.synheart/behavior.svg)](https://search.maven.org/artifact/ai.synheart/behavior)
+[![Maven Central](https://img.shields.io/maven-central/v/ai.synheart/synheart-behavior.svg)](https://central.sonatype.com/artifact/ai.synheart/synheart-behavior)
 
 A privacy-preserving mobile SDK that collects digital behavioral signals from smartphones. These timing-based signals represent biobehavioral markers correlated with cognitive and emotional states, especially focus, stress, engagement, and fatigue.
 
@@ -23,7 +23,7 @@ Add to your `build.gradle`:
 
 ```gradle
 dependencies {
-    implementation 'ai.synheart:behavior:0.3.0'
+    implementation 'ai.synheart:synheart-behavior:0.3.1'
 }
 ```
 
@@ -32,8 +32,8 @@ dependencies {
 ```xml
 <dependency>
     <groupId>ai.synheart</groupId>
-    <artifactId>behavior</artifactId>
-    <version>0.3.0</version>
+    <artifactId>synheart-behavior</artifactId>
+    <version>0.3.1</version>
 </dependency>
 ```
 
@@ -611,7 +611,7 @@ The example app includes:
 
 ## API Reference
 
-For detailed API documentation, see the [Maven Central package page](https://search.maven.org/artifact/ai.synheart/behavior).
+For detailed API documentation, see the [Maven Central package page](https://central.sonatype.com/artifact/ai.synheart/synheart-behavior).
 
 ## Contributing
 
@@ -627,7 +627,7 @@ Israel Goytom
 
 ## Links
 
-- 📦 [Maven Central](https://search.maven.org/artifact/ai.synheart/behavior)
+- 📦 [Maven Central](https://central.sonatype.com/artifact/ai.synheart/synheart-behavior)
 - 🔗 [GitHub repository](https://github.com/synheart-ai/synheart-behavior-kotlin)
 
 ## Patent Pending Notice
