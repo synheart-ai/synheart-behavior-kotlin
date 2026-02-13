@@ -30,6 +30,16 @@ constructor(
     private var previousLength: Int = 0
     private val interKeyLatencies = mutableListOf<Int>() // Store latencies in milliseconds
 
+    // Backspace and clipboard (for Flux correction_rate and clipboard_activity_rate)
+    private var backspaceCount: Int = 0
+    private var pasteCount: Int = 0
+    private var copyCount: Int = 0
+    private var cutCount: Int = 0
+    // Selection/length before current change (for paste/cut/copy detection)
+    private var prevSelStart: Int = 0
+    private var prevSelEnd: Int = 0
+    private var prevLenInBefore: Int = 0
+
     // Static list to track all active BehaviorEditText instances for session/app lifecycle handling
     companion object {
         private val activeInstances = mutableListOf<BehaviorEditText>()
@@ -53,6 +63,7 @@ constructor(
     private val w3 = 0.25 // weight for cadence stability
 
     var onTypingEvent: ((BehaviorEvent) -> Unit)? = null
+    var onClipboardEvent: ((BehaviorEvent) -> Unit)? = null
 
     private val textWatcher =
             object : TextWatcher {
@@ -61,7 +72,11 @@ constructor(
                         start: Int,
                         count: Int,
                         after: Int
-                ) {}
+                ) {
+                    prevLenInBefore = s?.length ?: 0
+                    prevSelStart = selectionStart
+                    prevSelEnd = selectionEnd
+                }
                 override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
                 override fun afterTextChanged(s: Editable?) {
                     onTextChanged()
@@ -84,6 +99,20 @@ constructor(
         activeInstances.remove(this)
     }
 
+    /**
+     * Detect Copy from the context menu (or floating toolbar). On Android, copy does not
+     * change the text and often keeps the selection, so TextWatcher never fires. This override
+     * runs when the user taps Copy. Cut is still detected in onTextChanged (deletion with selection).
+     */
+    override fun onTextContextMenuItem(id: Int): Boolean {
+        if (id == android.R.id.copy) {
+            if (sessionStartTime == null) startTypingSession()
+            copyCount++
+            emitClipboardEvent("copy")
+        }
+        return super.onTextContextMenuItem(id)
+    }
+
     private fun onFocusChanged(hasFocus: Boolean) {
         if (hasFocus) {
             // Keyboard opened - start typing session
@@ -100,12 +129,16 @@ constructor(
         lastKeystrokeTime = null
         interKeyLatencies.clear()
         previousLength = text?.length ?: 0
+        backspaceCount = 0
+        pasteCount = 0
+        copyCount = 0
+        cutCount = 0
     }
 
     private fun endTypingSession() {
-        // If we have an active session with keystrokes, emit the event
-        if (sessionStartTime != null && interKeyLatencies.isNotEmpty()) {
-            // Emit typing session event
+        // If we have an active session with at least one keystroke (or paste/backspace only), emit the event
+        val hasKeystrokes = interKeyLatencies.isNotEmpty() || lastKeystrokeTime != null
+        if (sessionStartTime != null && hasKeystrokes) {
             emitTypingSessionEvent()
         }
 
@@ -124,30 +157,67 @@ constructor(
 
         val currentLength = text?.length ?: 0
         val now = System.currentTimeMillis()
+        val lengthDiff = currentLength - previousLength
 
-        // Only detect when text is added (not deleted)
-        if (currentLength > previousLength) {
-            // Start session if not already started
+        // Paste detection: 2+ characters added in one change
+        if (lengthDiff >= 2) {
+            if (sessionStartTime == null) startTypingSession()
+            pasteCount++
+            emitClipboardEvent("paste")
+            lastKeystrokeTime = now
+            previousLength = currentLength
+            return
+        }
+
+        // Copy detection: had selection, now collapsed, text unchanged
+        if (lengthDiff == 0 && prevSelStart != prevSelEnd && selectionStart == selectionEnd) {
+            copyCount++
+            emitClipboardEvent("copy")
+            previousLength = currentLength
+            return
+        }
+
+        // Deletion: backspace vs cut
+        if (currentLength < previousLength) {
+            if (sessionStartTime == null) startTypingSession()
+            val deleted = previousLength - currentLength
+            val hadSelection = prevSelStart != prevSelEnd
+            if (hadSelection) {
+                cutCount++
+                emitClipboardEvent("cut")
+            } else {
+                backspaceCount += deleted
+            }
+            previousLength = currentLength
+            return
+        }
+
+        // Single character added (normal typing)
+        if (lengthDiff == 1) {
             if (sessionStartTime == null) {
                 startTypingSession()
             }
-
-            // Calculate inter-key latency
-            // Only store actual intervals (not 0 for first keystroke)
             if (lastKeystrokeTime != null) {
                 val latency = (now - lastKeystrokeTime!!).toInt()
                 interKeyLatencies.add(latency)
             }
-            // First keystroke: don't store anything (no previous keystroke to measure interval)
-
             lastKeystrokeTime = now
         }
 
         previousLength = currentLength
     }
 
+    private fun emitClipboardEvent(action: String) {
+        val event = BehaviorEvent.clipboard(sessionId = "current", action = action, context = "textField")
+        onClipboardEvent?.invoke(event)
+    }
+
     private fun emitTypingSessionEvent() {
-        if (sessionStartTime == null || interKeyLatencies.isEmpty()) {
+        if (sessionStartTime == null) return
+        // Allow emitting with only backspace/paste (no keystrokes): typingTapCount can be 0
+        val hasIntervals = interKeyLatencies.isNotEmpty()
+        val typingTapCount = if (hasIntervals) interKeyLatencies.size + 1 else 0
+        if (typingTapCount == 0 && backspaceCount == 0 && pasteCount == 0 && copyCount == 0 && cutCount == 0) {
             return
         }
 
@@ -155,24 +225,23 @@ constructor(
         val durationMs = sessionEndTime - sessionStartTime!!
         val durationSeconds = durationMs / 1000.0
 
-        // N = typing_tap_count (total number of keyboard tap events)
-        val typingTapCount = interKeyLatencies.size + 1 // +1 for first keystroke
+        // N = typing_tap_count (total number of keyboard tap events); may be 0 if only paste/backspace
+        val tapCount = if (interKeyLatencies.isNotEmpty()) interKeyLatencies.size + 1 else 0
 
         // typing_speed = N / T (taps per second)
-        val typingSpeed = if (durationSeconds > 0) typingTapCount / durationSeconds else 0.0
+        val typingSpeed = if (durationSeconds > 0) tapCount / durationSeconds else 0.0
 
         // mean_inter_tap_interval_ms = μ_Δt = (1 / (N - 1)) × Σ(i=2 to N) Δtᵢ
         var meanInterTapIntervalMs = 0.0
         if (interKeyLatencies.isNotEmpty()) {
             val sum = interKeyLatencies.sum()
-            val intervalCount =
-                    if (typingTapCount > 1) typingTapCount - 1 else interKeyLatencies.size
+            val intervalCount = if (tapCount > 1) tapCount - 1 else interKeyLatencies.size
             meanInterTapIntervalMs = if (intervalCount > 0) sum.toDouble() / intervalCount else 0.0
         }
 
         // typing_cadence_variability: Standard deviation of inter-tap intervals
         var typingCadenceVariability = 0.0
-        if (typingTapCount >= 3 && interKeyLatencies.size >= 2 && meanInterTapIntervalMs > 0) {
+        if (tapCount >= 3 && interKeyLatencies.size >= 2 && meanInterTapIntervalMs > 0) {
             val nIntervals = interKeyLatencies.size
             val denominator = nIntervals - 1
 
@@ -198,9 +267,9 @@ constructor(
         val typingGapCount = interKeyLatencies.count { it > gapThresholdMs }
 
         // typing_gap_ratio = typing_gap_count / (N - 1)
-        val intervalCount = if (typingTapCount > 1) typingTapCount - 1 else interKeyLatencies.size
+        val intervalCountForGap = if (tapCount > 1) tapCount - 1 else interKeyLatencies.size
         val typingGapRatio =
-                if (intervalCount > 0) typingGapCount.toDouble() / intervalCount else 0.0
+                if (intervalCountForGap > 0) typingGapCount.toDouble() / intervalCountForGap else 0.0
 
         // typing_burstiness
         var typingBurstiness = 0.0
@@ -238,7 +307,7 @@ constructor(
         val typingEvent =
                 BehaviorEvent.typing(
                         sessionId = "current", // Will be replaced with actual session ID by SDK
-                        typingTapCount = typingTapCount,
+                        typingTapCount = tapCount,
                         typingSpeed = typingSpeed,
                         meanInterTapIntervalMs = meanInterTapIntervalMs,
                         typingCadenceVariability = typingCadenceVariability,
@@ -251,7 +320,11 @@ constructor(
                         durationSeconds = durationSeconds.toInt(),
                         startAt = startAt,
                         endAt = endAt,
-                        deepTyping = deepTyping
+                        deepTyping = deepTyping,
+                        backspaceCount = backspaceCount,
+                        numberOfCopy = copyCount,
+                        numberOfPaste = pasteCount,
+                        numberOfCut = cutCount
                 )
 
         // Emit event through callback

@@ -23,7 +23,7 @@ Add to your `build.gradle`:
 
 ```gradle
 dependencies {
-    implementation 'ai.synheart:synheart-behavior:0.3.1'
+    implementation 'ai.synheart:synheart-behavior:0.4.0'
 }
 ```
 
@@ -33,15 +33,15 @@ dependencies {
 <dependency>
     <groupId>ai.synheart</groupId>
     <artifactId>synheart-behavior</artifactId>
-    <version>0.3.1</version>
+    <version>0.4.0</version>
 </dependency>
 ```
 
 ### Required: synheart-flux (HSI metrics)
 
-The SDK **requires** the native `synheart-flux` library for computing all behavioral and typing metrics. Install it as follows:
+The SDK **requires** the native `synheart-flux` library (version **0.3.0** or later recommended) for computing all behavioral and typing metrics. Install it as follows:
 
-1. Download `synheart-flux-android-jniLibs.tar.gz` from the [synheart-flux releases](https://github.com/synheart-ai/synheart-flux/releases)
+1. Download `synheart-flux-android-jniLibs.tar.gz` from the [synheart-flux releases page](https://github.com/synheart-ai/synheart-flux/releases) (use **v0.3.0 or later** for full typing summary, including clipboard and correction rates).
 2. Extract and copy the `.so` files into:
 
 ```
@@ -233,7 +233,7 @@ The SDK collects six types of behavioral events:
 - **Swipe**: Direction, distance, velocity, acceleration
 - **Notification**: Received, opened, ignored (requires permission)
 - **Call**: Answered, ignored, dismissed (requires permission)
-- **Typing**: Comprehensive typing session metrics including speed, cadence, burstiness, and deep typing detection
+- **Typing**: Comprehensive typing session metrics including speed, cadence, burstiness, deep typing detection, and (from Flux) clipboard activity rate and correction rate
 
 **Note**: App switch events (`APP_SWITCH`) are tracked internally and sent to Flux for task switch calculations, but are not displayed as one of the six event types in event streams or UI. App switch count is available in session summaries via `activitySummary.appSwitchCount`.
 
@@ -308,7 +308,7 @@ val config = BehaviorConfig(
     // HSI payload fields (optional)
     userId = "anon_43a8cd",           // Anonymous user ID (auto-generated if null)
     deviceId = "synheart_android_14", // Device ID (auto-generated if null)
-    behaviorVersion = "0.2.0",       // SDK version for HSI payloads
+    behaviorVersion = "0.4.0",       // SDK version for HSI payloads
     consentBehavior = true            // Behavior tracking consent (default: true)
 )
 
@@ -372,11 +372,13 @@ android.util.Log.d("Behavior", "App Switches: ${summary.activitySummary.appSwitc
 android.util.Log.d("Behavior", "Notifications: ${summary.notificationSummary.notificationCount}")
 android.util.Log.d("Behavior", "Ignore Rate: ${summary.notificationSummary.notificationIgnoreRate}")
 
-// Typing session summary (if typing events occurred)
+// Typing session summary (from Flux; includes clipboard/correction rates)
 summary.typingSessionSummary?.let { typing ->
     android.util.Log.d("Behavior", "Typing Sessions: ${typing.typingSessionCount}")
     android.util.Log.d("Behavior", "Average Speed: ${typing.averageTypingSpeed} taps/sec")
     android.util.Log.d("Behavior", "Deep Typing Blocks: ${typing.deepTypingBlocks}")
+    android.util.Log.d("Behavior", "Clipboard Activity Rate: ${typing.clipboardActivityRate}")
+    android.util.Log.d("Behavior", "Correction Rate: ${typing.correctionRate}")
 }
 
 // Motion state (if motion tracking enabled)
@@ -583,6 +585,15 @@ behavior.sendEvent(event)
 - Ensure the session was properly started
 - Check that the SDK is still initialized
 - Verify the session ID matches the active session
+- Ensure `libsynheart_flux.so` is present in `jniLibs` (see [SYNHEART_FLUX_INTEGRATION.md](SYNHEART_FLUX_INTEGRATION.md))
+
+### Typing summary clipboard/correction rates are 0
+
+**Problem**: `typingSessionSummary.clipboardActivityRate` or `correctionRate` are always 0 even when the user typed with copy/paste/cut or backspace.
+
+**Solutions**:
+
+- These values are computed by synheart-flux, not the SDK. Use **synheart-flux v0.3.0 or later** and replace the `.so` files in `src/main/jniLibs/<abi>/`. See [SYNHEART_FLUX_INTEGRATION.md](SYNHEART_FLUX_INTEGRATION.md).
 
 ### Build Errors
 

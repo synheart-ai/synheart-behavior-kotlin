@@ -12,6 +12,7 @@ enum class BehaviorEventType {
         NOTIFICATION,
         CALL,
         TYPING,
+        CLIPBOARD,
         APP_SWITCH
 }
 
@@ -140,7 +141,10 @@ data class BehaviorEvent(
                         )
                 }
 
-                /** Create a typing event. */
+                /**
+                 * Create a typing event. Include [backspaceCount] and [numberOfCopy]/[numberOfPaste]/[numberOfCut]
+                 * so Flux can compute [TypingSessionSummary.correctionRate] and [TypingSessionSummary.clipboardActivityRate].
+                 */
                 fun typing(
                         sessionId: String,
                         typingTapCount: Int,
@@ -157,35 +161,59 @@ data class BehaviorEvent(
                         startAt: String,
                         endAt: String,
                         deepTyping: Boolean,
+                        backspaceCount: Int = 0,
+                        numberOfCopy: Int = 0,
+                        numberOfPaste: Int = 0,
+                        numberOfCut: Int = 0,
                         eventId: String? = null,
                         timestamp: String? = null
                 ): BehaviorEvent {
+                        val metrics = mutableMapOf<String, Any>(
+                                "typing_tap_count" to typingTapCount,
+                                "typing_speed" to typingSpeed,
+                                "mean_inter_tap_interval_ms" to meanInterTapIntervalMs,
+                                "typing_cadence_variability" to typingCadenceVariability,
+                                "typing_cadence_stability" to typingCadenceStability,
+                                "typing_gap_count" to typingGapCount,
+                                "typing_gap_ratio" to typingGapRatio,
+                                "typing_burstiness" to typingBurstiness,
+                                "typing_activity_ratio" to typingActivityRatio,
+                                "typing_interaction_intensity" to typingInteractionIntensity,
+                                "duration" to durationSeconds,
+                                "start_at" to startAt,
+                                "end_at" to endAt,
+                                "deep_typing" to deepTyping,
+                                "backspace_count" to backspaceCount,
+                                "number_of_delete" to 0, // Mobile has no delete key; only backspace
+                                "number_of_copy" to numberOfCopy,
+                                "number_of_paste" to numberOfPaste,
+                                "number_of_cut" to numberOfCut
+                        )
                         return BehaviorEvent(
                                 eventId = eventId ?: "evt_${System.currentTimeMillis()}",
                                 sessionId = sessionId,
                                 timestamp = timestamp ?: ISO_FORMATTER.format(Instant.now()),
                                 eventType = BehaviorEventType.TYPING,
-                                metrics =
-                                        mapOf(
-                                                "typing_tap_count" to typingTapCount,
-                                                "typing_speed" to typingSpeed,
-                                                "mean_inter_tap_interval_ms" to
-                                                        meanInterTapIntervalMs,
-                                                "typing_cadence_variability" to
-                                                        typingCadenceVariability,
-                                                "typing_cadence_stability" to
-                                                        typingCadenceStability,
-                                                "typing_gap_count" to typingGapCount,
-                                                "typing_gap_ratio" to typingGapRatio,
-                                                "typing_burstiness" to typingBurstiness,
-                                                "typing_activity_ratio" to typingActivityRatio,
-                                                "typing_interaction_intensity" to
-                                                        typingInteractionIntensity,
-                                                "duration" to durationSeconds,
-                                                "start_at" to startAt,
-                                                "end_at" to endAt,
-                                                "deep_typing" to deepTyping
-                                        )
+                                metrics = metrics
+                        )
+                }
+
+                /** Create a clipboard event (copy/paste/cut). Privacy-first: only action type, not content. */
+                fun clipboard(
+                        sessionId: String,
+                        action: String, // "copy", "paste", "cut"
+                        context: String? = null, // e.g. "textField", "system"
+                        eventId: String? = null,
+                        timestamp: String? = null
+                ): BehaviorEvent {
+                        val metrics = mutableMapOf<String, Any>("action" to action)
+                        if (context != null) metrics["context"] = context
+                        return BehaviorEvent(
+                                eventId = eventId ?: "evt_${System.currentTimeMillis()}",
+                                sessionId = sessionId,
+                                timestamp = timestamp ?: ISO_FORMATTER.format(Instant.now()),
+                                eventType = BehaviorEventType.CLIPBOARD,
+                                metrics = metrics
                         )
                 }
 

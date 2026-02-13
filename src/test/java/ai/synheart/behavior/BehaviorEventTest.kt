@@ -109,6 +109,44 @@ class BehaviorEventTest {
     }
 
     @Test
+    fun `typing event includes backspace and clipboard counts for Flux`() {
+        val typingEvent = BehaviorEvent.typing(
+            sessionId = sessionId,
+            typingTapCount = 10,
+            typingSpeed = 4.0,
+            meanInterTapIntervalMs = 200.0,
+            typingCadenceVariability = 0.1,
+            typingCadenceStability = 0.9,
+            typingGapCount = 0,
+            typingGapRatio = 0.0,
+            typingBurstiness = 0.2,
+            typingActivityRatio = 0.95,
+            typingInteractionIntensity = 0.8,
+            durationSeconds = 5,
+            startAt = "2023-01-01T10:00:00Z",
+            endAt = "2023-01-01T10:00:05Z",
+            deepTyping = false,
+            backspaceCount = 3,
+            numberOfCopy = 1,
+            numberOfPaste = 2,
+            numberOfCut = 0
+        )
+        assertEquals(3, typingEvent.metrics["backspace_count"])
+        assertEquals(0, typingEvent.metrics["number_of_delete"]) // Mobile: always 0
+        assertEquals(1, typingEvent.metrics["number_of_copy"])
+        assertEquals(2, typingEvent.metrics["number_of_paste"])
+        assertEquals(0, typingEvent.metrics["number_of_cut"])
+    }
+
+    @Test
+    fun `clipboard factory creates clipboard event`() {
+        val event = BehaviorEvent.clipboard(sessionId, "paste", "textField")
+        assertEquals(BehaviorEventType.CLIPBOARD, event.eventType)
+        assertEquals("paste", event.metrics["action"])
+        assertEquals("textField", event.metrics["context"])
+    }
+
+    @Test
     fun `fromJson parses correctly`() {
         val json = mapOf(
             "event" to mapOf(

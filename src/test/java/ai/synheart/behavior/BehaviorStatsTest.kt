@@ -132,9 +132,6 @@ class BehaviorStatsTest {
     @Test
     fun `toMap includes all non-null fields`() {
         val stats = BehaviorStats(
-            typingCadence = 5.2,
-            interKeyLatency = 150.0,
-            burstLength = 10,
             scrollVelocity = 500.0,
             appSwitchesPerMinute = 3,
             stabilityIndex = 0.85,
@@ -143,9 +140,6 @@ class BehaviorStatsTest {
 
         val map = stats.toMap()
 
-        assertEquals(5.2, map["typing_cadence"])
-        assertEquals(150.0, map["inter_key_latency"])
-        assertEquals(10, map["burst_length"])
         assertEquals(500.0, map["scroll_velocity"])
         assertNull(map["scroll_acceleration"])
         assertNull(map["scroll_jitter"])
@@ -160,9 +154,8 @@ class BehaviorStatsTest {
         val stats = BehaviorStats(timestamp = 123L)
         val map = stats.toMap()
 
-        assertNull(map["typing_cadence"])
-        assertNull(map["inter_key_latency"])
-        assertNull(map["burst_length"])
+        assertNull(map["scroll_velocity"])
+        assertNull(map["tap_rate"])
         assertEquals(0, map["app_switches_per_minute"])
         assertEquals(123L, map["timestamp"])
     }

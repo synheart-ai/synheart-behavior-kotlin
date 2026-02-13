@@ -257,6 +257,18 @@ data class TypingSessionSummary(
         val deepTypingBlocks: Int,
         /** Measure of typing fragmentation */
         val typingFragmentation: Double,
+        /**
+         * Clipboard activity rate (0.0–1.0). Computed by Flux from per-session counts:
+         * (number_of_copy + number_of_paste + number_of_cut) / (typing_tap_count + copy + paste + cut).
+         * Send copy/paste/cut counts in typing events so Flux can compute this.
+         */
+        val clipboardActivityRate: Double = 0.0,
+        /**
+         * Correction rate (0.0–1.0). Computed by Flux from per-session counts:
+         * (number_of_backspace + number_of_delete) / (typing_tap_count + backspace + delete).
+         * On mobile, number_of_delete is 0. Send backspace_count in typing events so Flux can compute this.
+         */
+        val correctionRate: Double = 0.0,
         /** List of individual typing sessions */
         val individualTypingSessions: List<TypingMetrics>
 ) {
@@ -312,6 +324,11 @@ data class TypingSessionSummary(
                                 typingFragmentation =
                                         (json["typing_fragmentation"] as? Number)?.toDouble()
                                                 ?: 0.0,
+                                clipboardActivityRate =
+                                        (json["clipboard_activity_rate"] as? Number)?.toDouble()
+                                                ?: 0.0,
+                                correctionRate =
+                                        (json["correction_rate"] as? Number)?.toDouble() ?: 0.0,
                                 individualTypingSessions = individualSessions
                         )
                 }
@@ -333,6 +350,8 @@ data class TypingSessionSummary(
                                 typingContributionToInteractionIntensity,
                         "deep_typing_blocks" to deepTypingBlocks,
                         "typing_fragmentation" to typingFragmentation,
+                        "clipboard_activity_rate" to clipboardActivityRate,
+                        "correction_rate" to correctionRate,
                         "typing_metrics" to individualTypingSessions.map { it.toJson() }
                 )
         }
