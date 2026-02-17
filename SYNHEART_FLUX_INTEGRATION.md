@@ -18,10 +18,13 @@ The SDK uses synheart-flux for computing:
 - Scroll jitter rate
 - Deep focus blocks
 - Interaction intensity
-- Typing session metrics (typing session count, average keystrokes, typing speed, etc.)
-- And all other HSI-compliant metrics
+- Typing session metrics (typing session count, average keystrokes, typing speed, cadence, etc.)
+- **Clipboard activity rate** and **correction rate** (from typing session copy/paste/cut and backspace counts)
+- All other HSI-compliant metrics
 
-**Note**: synheart-flux is **required**. If the library is not available, session ending will fail with an error.
+The SDK does **not** perform any of these calculations locally; it sends event data to Flux and reads the results from the HSI payload (including `meta.clipboard_activity_rate` and `meta.correction_rate`).
+
+**Note**: synheart-flux is **required**. If the library is not available, session ending will fail with an error. Use **synheart-flux v0.3.0 or later** for full typing summary support (including clipboard and correction rates).
 
 ## Benefits
 
@@ -32,28 +35,49 @@ The SDK uses synheart-flux for computing:
 
 ## Installation
 
-### Step 1: Download the Native Libraries
+### Option A: Prebuilt libraries (recommended)
 
-Download the synheart-flux Android libraries from the [synheart-flux releases](https://github.com/synheart-ai/synheart-flux/releases):
-- `synheart-flux-android-jniLibs.tar.gz`
-
-### Step 2: Add to Your Project
-
-Extract and place the `.so` files:
+1. Download the synheart-flux Android libraries from the [v0.3.0 release](https://github.com/synheart-ai/synheart-flux/releases/tag/v0.3.0) (or [releases page](https://github.com/synheart-ai/synheart-flux/releases)):
+   - `synheart-flux-android-jniLibs.tar.gz` (or equivalent for your version)
+2. Extract and place the `.so` files in this SDK's `src/main/jniLibs/`:
 
 ```
-android/src/main/jniLibs/
+src/main/jniLibs/
 ├── arm64-v8a/
 │   └── libsynheart_flux.so
 ├── armeabi-v7a/
+│   └── libsynheart_flux.so
+├── x86/
 │   └── libsynheart_flux.so
 └── x86_64/
     └── libsynheart_flux.so
 ```
 
-**Note**: The JNI bridge library (`libflux_jni_bridge.so`) is automatically built by the SDK's CMake configuration. You only need to provide `libsynheart_flux.so`.
+**Note**: The JNI bridge library (`libflux_jni_bridge.so`) is built by this SDK's CMake configuration. You only need to provide `libsynheart_flux.so`.
 
-### Step 3: Verify Integration
+### Option B: Build from a cloned synheart-flux repo
+
+If you have synheart-flux cloned (e.g. in your workspace next to this repo):
+
+```bash
+cd /path/to/synheart-flux
+
+# Build Android libraries (set ANDROID_NDK_HOME if needed)
+bash scripts/build-android.sh dist/android
+
+# Or for jniLibs layout:
+# ANDROID_NDK_HOME=/path/to/ndk bash scripts/build-android.sh dist/android/jniLibs
+
+# Copy into this SDK
+cp -r dist/android/arm64-v8a/libsynheart_flux.so /path/to/synheart-behavior-kotlin/src/main/jniLibs/arm64-v8a/
+cp -r dist/android/armeabi-v7a/libsynheart_flux.so /path/to/synheart-behavior-kotlin/src/main/jniLibs/armeabi-v7a/
+cp -r dist/android/x86/libsynheart_flux.so /path/to/synheart-behavior-kotlin/src/main/jniLibs/x86/
+cp -r dist/android/x86_64/libsynheart_flux.so /path/to/synheart-behavior-kotlin/src/main/jniLibs/x86_64/
+```
+
+Adjust paths to match your workspace layout.
+
+### Verify Integration
 
 ```kotlin
 import ai.synheart.behavior.SynheartBehavior
@@ -95,8 +119,12 @@ println("Focus hint: ${summary.behavioralMetrics.focusHint}")
 println("Burstiness: ${summary.behavioralMetrics.burstiness}")
 println("Task switch rate: ${summary.behavioralMetrics.taskSwitchRate}")
 
-// Typing metrics are also from Flux
-println("Typing sessions: ${summary.typingSessionSummary?.typingSessionCount ?: 0}")
+// Typing summary is from Flux (including clipboard/correction rates)
+summary.typingSessionSummary?.let { typing ->
+    println("Typing sessions: ${typing.typingSessionCount}")
+    println("Clipboard activity rate: ${typing.clipboardActivityRate}")
+    println("Correction rate: ${typing.correctionRate}")
+}
 ```
 
 ### Using FluxBehaviorProcessor Directly
@@ -164,26 +192,26 @@ if (hsiJson != null) {
 
 ## Building from Source
 
-If you prefer to build synheart-flux from source:
+See **Option B** under Installation above. From a cloned synheart-flux repo, run:
 
 ```bash
 cd /path/to/synheart-flux
+ANDROID_NDK_HOME=/path/to/ndk bash scripts/build-android.sh dist/android/jniLibs
 
-# Build Android libraries
-bash scripts/build-android.sh dist/android
-
-# Copy to your project
-cp dist/android/arm64-v8a/libsynheart_flux.so /path/to/synheart-behavior-kotlin/src/main/jniLibs/arm64-v8a/
-cp dist/android/armeabi-v7a/libsynheart_flux.so /path/to/synheart-behavior-kotlin/src/main/jniLibs/armeabi-v7a/
-cp dist/android/x86/libsynheart_flux.so /path/to/synheart-behavior-kotlin/src/main/jniLibs/x86/
-cp dist/android/x86_64/libsynheart_flux.so /path/to/synheart-behavior-kotlin/src/main/jniLibs/x86_64/
+# Copy into this SDK (adjust paths to your workspace)
+cp dist/android/jniLibs/arm64-v8a/libsynheart_flux.so /path/to/synheart-behavior-kotlin/src/main/jniLibs/arm64-v8a/
+cp dist/android/jniLibs/armeabi-v7a/libsynheart_flux.so /path/to/synheart-behavior-kotlin/src/main/jniLibs/armeabi-v7a/
+cp dist/android/jniLibs/x86_64/libsynheart_flux.so /path/to/synheart-behavior-kotlin/src/main/jniLibs/x86_64/
 ```
+
+The build script produces arm64-v8a, armeabi-v7a, and x86_64. Add x86 separately if needed.
 
 ## Verifying Integration
 
 Check Logcat for these messages:
 
 **Success:**
+
 ```
 FluxBridge: Successfully loaded libsynheart_flux.so
 FluxBridge: Successfully loaded libflux_jni_bridge.so
@@ -192,10 +220,20 @@ SessionTracker: Successfully computed metrics using synheart-flux - 15ms
 ```
 
 **Error (SDK will fail):**
+
 ```
 FluxBridge: Failed to load native libraries: ...
 IllegalStateException: Failed to load synheart-flux native libraries...
 ```
+
+## Typing Summary from Flux
+
+The session summary's `typingSessionSummary` (e.g. `BehaviorSessionSummary.typingSessionSummary`) is populated from Flux's HSI **meta** section. Flux aggregates per-typing-session counts (backspace, copy, paste, cut, tap count) and computes:
+
+- **clipboard_activity_rate**: `(copy + paste + cut) / (typing_tap_count + copy + paste + cut)`
+- **correction_rate**: `(backspace + delete) / (typing_tap_count + backspace + delete)`
+
+The SDK sends these counts in each typing event payload; Flux returns the aggregated rates in `meta`. No calculations are done in the SDK. Use synheart-flux **v0.3.0 or later** so that `meta` includes these fields.
 
 ## HSI Output Format
 
@@ -239,6 +277,7 @@ data class HsiBehavioralMetrics(
 ### Native library not found
 
 Ensure the `.so` files are:
+
 1. In the correct architecture subdirectories under `jniLibs`
 2. Named `libsynheart_flux.so` (with the `lib` prefix)
 3. Built for the correct ABI (arm64-v8a for most modern devices)
@@ -254,6 +293,11 @@ Ensure the `.so` files are:
 - Use `processor.saveBaselines()` before the app terminates
 - Store the JSON string in SharedPreferences or encrypted storage
 - Load with `processor.loadBaselines()` on next launch
+
+### Clipboard activity rate or correction rate always 0
+
+- These values are computed by Flux and returned in the HSI `meta` section. If they stay 0 despite typing with copy/paste/cut or backspace, you are likely using an older `libsynheart_flux.so` that does not populate them.
+- Download **synheart-flux v0.3.0 or later** from the [releases page](https://github.com/synheart-ai/synheart-flux/releases) and replace the `.so` files in `src/main/jniLibs/<abi>/`.
 
 ## API Reference
 

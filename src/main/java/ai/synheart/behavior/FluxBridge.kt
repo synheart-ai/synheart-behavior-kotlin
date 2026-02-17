@@ -128,10 +128,8 @@ object FluxBridge {
             return null
         }
         return try {
-            Log.d(TAG, "Calling nativeBehaviorToHsi with JSON length: ${sessionJson.length}")
             val result = nativeBehaviorToHsi(sessionJson)
             if (result == null) {
-                // Get error message from Rust
                 try {
                     val errorMsg = nativeLastError()
                     Log.w(
@@ -142,8 +140,6 @@ object FluxBridge {
                     Log.e(TAG, "Failed to get error message from Rust: ${e.message}")
                 }
                 Log.d(TAG, "Input JSON (first 500 chars): ${sessionJson.take(500)}")
-            } else {
-                Log.d(TAG, "Rust computation succeeded, result length: ${result.length}")
             }
             result
         } catch (e: Exception) {
@@ -346,18 +342,10 @@ fun convertEventsToFluxJson(
     val fluxEvents = JSONArray()
     val isoFormatter = DateTimeFormatter.ISO_INSTANT
 
-    // DEBUG: Count events being sent to Flux
-    var scrollEventCount = 0
-    var scrollEventsWithReversal = 0
-
     for (event in events) {
-        // Count scroll events (APP_SWITCH events are not counted, but still sent to Flux)
-        if (event.eventType == BehaviorEventType.SCROLL) {
-            scrollEventCount++
-            val hasReversal = event.metrics["direction_reversal"] as? Boolean ?: false
-            if (hasReversal) {
-                scrollEventsWithReversal++
-            }
+        // Clipboard events are tracked for session summary only; Flux gets counts via typing payload
+        if (event.eventType == BehaviorEventType.CLIPBOARD) {
+            continue
         }
 
         val fluxEvent = JSONObject()
@@ -434,18 +422,14 @@ fun convertEventsToFluxJson(
                     }
                     typing.put("pause_count", pauseCountValue)
                 }
-                // Include detailed typing metrics that Flux uses for aggregation
-                // These are needed for Flux to calculate average_keystrokes_per_session,
-                // average_typing_gap, average_inter_tap_interval, and burstiness_of_typing
+                // Always include typing_tap_count (Flux needs it for aggregation; use 0 if missing)
                 val typingTapCount = event.metrics["typing_tap_count"]
-                if (typingTapCount != null) {
-                    val tapCountValue = when (typingTapCount) {
-                        is Number -> typingTapCount.toInt()
-                        is String -> typingTapCount.toIntOrNull() ?: 0
-                        else -> 0
-                    }
-                    typing.put("typing_tap_count", tapCountValue)
+                val tapCountValue = when (typingTapCount) {
+                    is Number -> typingTapCount.toInt()
+                    is String -> typingTapCount.toIntOrNull() ?: 0
+                    else -> 0
                 }
+                typing.put("typing_tap_count", tapCountValue)
                 val meanInterTapInterval = event.metrics["mean_inter_tap_interval_ms"]
                 if (meanInterTapInterval != null) {
                     val itiValue = when (meanInterTapInterval) {
@@ -473,7 +457,52 @@ fun convertEventsToFluxJson(
                 if (endAt != null) {
                     typing.put("end_at", endAt.toString())
                 }
+                // Correction and clipboard counts to Flux (aligned with Dart SDK Android/iOS FluxBridge).
+                // Event metrics: backspace_count, number_of_copy, number_of_paste, number_of_cut.
+                // Flux expects: number_of_backspace, number_of_delete, number_of_copy, number_of_paste, number_of_cut.
+                // Flux then returns meta.clipboard_activity_rate and meta.correction_rate.
+                val backspaceCount = event.metrics["backspace_count"]
+                typing.put(
+                    "number_of_backspace",
+                    when (backspaceCount) {
+                        is Number -> backspaceCount.toInt()
+                        is String -> backspaceCount.toString().toIntOrNull() ?: 0
+                        else -> 0
+                    }
+                )
+                typing.put("number_of_delete", 0) // Mobile has no delete key; only backspace
+                val numberOfCopy = event.metrics["number_of_copy"]
+                typing.put(
+                    "number_of_copy",
+                    when (numberOfCopy) {
+                        is Number -> numberOfCopy.toInt()
+                        is String -> numberOfCopy.toString().toIntOrNull() ?: 0
+                        else -> 0
+                    }
+                )
+                val numberOfPaste = event.metrics["number_of_paste"]
+                typing.put(
+                    "number_of_paste",
+                    when (numberOfPaste) {
+                        is Number -> numberOfPaste.toInt()
+                        is String -> numberOfPaste.toString().toIntOrNull() ?: 0
+                        else -> 0
+                    }
+                )
+                val numberOfCut = event.metrics["number_of_cut"]
+                typing.put(
+                    "number_of_cut",
+                    when (numberOfCut) {
+                        is Number -> numberOfCut.toInt()
+                        is String -> numberOfCut.toString().toIntOrNull() ?: 0
+                        else -> 0
+                    }
+                )
                 fluxEvent.put("typing", typing)
+            }
+            BehaviorEventType.CLIPBOARD -> {
+                // Skipped at loop start; branch for exhaustive when
+                continue
             }
             BehaviorEventType.APP_SWITCH -> {
                 // APP_SWITCH events are sent to Flux for task switch calculations
@@ -487,12 +516,6 @@ fun convertEventsToFluxJson(
 
         fluxEvents.put(fluxEvent)
     }
-
-    // DEBUG: Log what we're sending to Flux
-    Log.d("FluxBridge", "=== CONVERTING TO FLUX JSON ===")
-    Log.d("FluxBridge", "Total events: ${events.size}")
-    Log.d("FluxBridge", "Scroll events: $scrollEventCount (with reversal: $scrollEventsWithReversal)")
-    Log.d("FluxBridge", "=== END CONVERSION DEBUG ===")
 
     val session = JSONObject()
     session.put("session_id", sessionId)
@@ -652,33 +675,20 @@ fun extractBehavioralMetricsFromHsi(hsiJson: String): Map<String, Any>? {
         result["interaction_intensity"] = metricsMap["interaction_intensity"] ?: 0.0
         
         // Task switch rate: Direct extraction from Flux (exponential saturation formula)
-        val taskSwitchRate = metricsMap["task_switch_rate"] ?: 0.0
-        result["task_switch_rate"] = taskSwitchRate
-        Log.d("FluxBridge", "Extracted task_switch_rate from Flux: $taskSwitchRate")
-        
+        result["task_switch_rate"] = metricsMap["task_switch_rate"] ?: 0.0
+
         // Task switch cost: Flux outputs normalized 0-1, convert to raw ms (0-10000)
         val taskSwitchCostNormalized = metricsMap["task_switch_cost"] ?: 0.0
-        val taskSwitchCostMs = (taskSwitchCostNormalized * 10000.0).toInt()
-        result["task_switch_cost"] = taskSwitchCostMs
-        Log.d("FluxBridge", "Extracted task_switch_cost from Flux: normalized=$taskSwitchCostNormalized, raw_ms=$taskSwitchCostMs")
-        
+        result["task_switch_cost"] = (taskSwitchCostNormalized * 10000.0).toInt()
+
         result["idle_time_ratio"] = metricsMap["idle_ratio"] ?: 0.0
-        
-        // Active time ratio: Flux outputs directly, fallback to 1.0 - idle_ratio
-        val activeTimeRatio = metricsMap["active_time_ratio"] ?: (1.0 - (metricsMap["idle_ratio"] ?: 0.0))
-        result["active_time_ratio"] = activeTimeRatio
-        Log.d("FluxBridge", "Extracted active_time_ratio from Flux: $activeTimeRatio (idle_ratio=${metricsMap["idle_ratio"] ?: 0.0})")
-        
+        result["active_time_ratio"] = metricsMap["active_time_ratio"] ?: (1.0 - (metricsMap["idle_ratio"] ?: 0.0))
         result["notification_load"] = metricsMap["notification_load"] ?: 0.0
         result["burstiness"] = metricsMap["burstiness"] ?: 0.0
         result["behavioral_distraction_score"] = metricsMap["distraction"] ?: 0.0
         result["focus_hint"] = metricsMap["focus"] ?: 0.0
         result["fragmented_idle_ratio"] = metricsMap["fragmented_idle_ratio"] ?: 0.0
-        
-        // Scroll jitter rate: Direct extraction from Flux (reversals / (scroll_events - 1))
-        val scrollJitterRate = metricsMap["scroll_jitter_rate"] ?: 0.0
-        result["scroll_jitter_rate"] = scrollJitterRate
-        Log.d("FluxBridge", "Extracted scroll_jitter_rate from Flux: $scrollJitterRate")
+        result["scroll_jitter_rate"] = metricsMap["scroll_jitter_rate"] ?: 0.0
         // Extract deep focus blocks detail as a List (matching Kotlin's format)
         val deepFocusBlocksDetail = meta?.optJSONArray("deep_focus_blocks_detail")
         result["deep_focus_blocks"] =
@@ -719,32 +729,42 @@ private fun extractDeepFocusBlocks(blocks: JSONArray?): List<Map<String, Any>> {
     }
 }
 
-/** Extract typing session summary from Flux's meta section. */
+/** Safe double from JSONObject: use fallback when key is missing or value is NaN. */
+private fun JSONObject.optDoubleOrZero(key: String): Double {
+    val v = optDouble(key, 0.0)
+    return if (v.isNaN()) 0.0 else v
+}
+
+/**
+ * Extract typing session summary from Flux's meta section (aligned with Dart SDK).
+ * Flux computes clipboard_activity_rate and correction_rate from the per-typing-session
+ * counts we send (number_of_copy/paste/cut, number_of_backspace/delete).
+ */
 private fun extractTypingSessionSummary(meta: JSONObject?): Map<String, Any> {
     if (meta == null) {
         return emptyMap()
     }
 
-    val typingSessionCount = meta.optInt("typing_session_count") ?: 0
+    val typingSessionCount = meta.optInt("typing_session_count", 0)
 
-    // Always return the map (even if all zeros) so we can compare with Calculation
+    // Use optDoubleOrZero so missing keys or NaN (e.g. old Flux) become 0.0, not NaN in UI.
     return mapOf(
             "typing_session_count" to typingSessionCount,
-            "average_keystrokes_per_session" to
-                    (meta.optDouble("average_keystrokes_per_session") ?: 0.0),
-            "average_typing_session_duration" to
-                    (meta.optDouble("average_typing_session_duration") ?: 0.0),
-            "average_typing_speed" to (meta.optDouble("average_typing_speed") ?: 0.0),
-            "average_typing_gap" to (meta.optDouble("average_typing_gap") ?: 0.0),
-            "average_inter_tap_interval" to (meta.optDouble("average_inter_tap_interval") ?: 0.0),
-            "typing_cadence_stability" to (meta.optDouble("typing_cadence_stability") ?: 0.0),
-            "burstiness_of_typing" to (meta.optDouble("burstiness_of_typing") ?: 0.0),
-            "total_typing_duration" to (meta.optInt("total_typing_duration") ?: 0),
-            "active_typing_ratio" to (meta.optDouble("active_typing_ratio") ?: 0.0),
+            "average_keystrokes_per_session" to meta.optDoubleOrZero("average_keystrokes_per_session"),
+            "average_typing_session_duration" to meta.optDoubleOrZero("average_typing_session_duration"),
+            "average_typing_speed" to meta.optDoubleOrZero("average_typing_speed"),
+            "average_typing_gap" to meta.optDoubleOrZero("average_typing_gap"),
+            "average_inter_tap_interval" to meta.optDoubleOrZero("average_inter_tap_interval"),
+            "typing_cadence_stability" to meta.optDoubleOrZero("typing_cadence_stability"),
+            "burstiness_of_typing" to meta.optDoubleOrZero("burstiness_of_typing"),
+            "total_typing_duration" to meta.optInt("total_typing_duration", 0),
+            "active_typing_ratio" to meta.optDoubleOrZero("active_typing_ratio"),
             "typing_contribution_to_interaction_intensity" to
-                    (meta.optDouble("typing_contribution_to_interaction_intensity") ?: 0.0),
-            "deep_typing_blocks" to (meta.optInt("deep_typing_blocks") ?: 0),
-            "typing_fragmentation" to (meta.optDouble("typing_fragmentation") ?: 0.0),
+                    meta.optDoubleOrZero("typing_contribution_to_interaction_intensity"),
+            "deep_typing_blocks" to meta.optInt("deep_typing_blocks", 0),
+            "typing_fragmentation" to meta.optDoubleOrZero("typing_fragmentation"),
+            "clipboard_activity_rate" to meta.optDoubleOrZero("clipboard_activity_rate"),
+            "correction_rate" to meta.optDoubleOrZero("correction_rate"),
             "typing_metrics" to extractTypingMetrics(meta.optJSONArray("typing_metrics"))
     )
 }

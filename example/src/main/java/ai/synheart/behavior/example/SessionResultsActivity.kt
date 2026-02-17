@@ -4,6 +4,7 @@ import ai.synheart.behavior.BehaviorEvent
 import ai.synheart.behavior.BehaviorEventType
 import ai.synheart.behavior.BehaviorSessionSummary
 import ai.synheart.behavior.SynheartBehavior
+import ai.synheart.behavior.TypingMetrics
 import android.app.DatePickerDialog
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -364,6 +365,29 @@ class SessionResultsActivity : AppCompatActivity() {
             findViewById<TextView>(R.id.typingFragmentationLabel)?.text = "Typing Fragmentation"
             findViewById<TextView>(R.id.typingFragmentationValue)?.text =
                     String.format("%.3f", typingSummary.typingFragmentation)
+            findViewById<TextView>(R.id.clipboardActivityRateLabel)?.text = "Clipboard Activity Rate"
+            findViewById<TextView>(R.id.clipboardActivityRateValue)?.text =
+                    String.format("%.3f", typingSummary.clipboardActivityRate)
+            findViewById<TextView>(R.id.correctionRateLabel)?.text = "Correction Rate"
+            findViewById<TextView>(R.id.correctionRateValue)?.text =
+                    String.format("%.3f", typingSummary.correctionRate)
+
+            // Individual typing sessions list (match Dart example)
+            val individualSessions = typingSummary.individualTypingSessions
+            if (individualSessions.isNotEmpty()) {
+                findViewById<TextView>(R.id.individualTypingSessionsTitle)?.apply {
+                    visibility = View.VISIBLE
+                    text = "Individual Typing Sessions (${individualSessions.size})"
+                }
+                findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.individualTypingSessionsList)?.apply {
+                    visibility = View.VISIBLE
+                    layoutManager = LinearLayoutManager(this@SessionResultsActivity)
+                    adapter = IndividualTypingSessionsAdapter(individualSessions)
+                }
+            } else {
+                findViewById<TextView>(R.id.individualTypingSessionsTitle)?.visibility = View.GONE
+                findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.individualTypingSessionsList)?.visibility = View.GONE
+            }
         } ?: run {
             findViewById<MaterialCardView>(R.id.typingSessionSummaryCard)?.visibility = View.GONE
         }
@@ -1119,8 +1143,31 @@ class EventsAdapter(private val events: List<BehaviorEvent>, private val session
             BehaviorEventType.NOTIFICATION -> 0xFF9C27B0.toInt() // Purple
             BehaviorEventType.CALL -> 0xFFF44336.toInt() // Red
             BehaviorEventType.TYPING -> 0xFF00BCD4.toInt() // Cyan
-            // APP_SWITCH events are filtered out from UI display, but kept for exhaustiveness
+            BehaviorEventType.CLIPBOARD -> 0xFF607D8B.toInt() // Blue grey
             BehaviorEventType.APP_SWITCH -> 0xFFE91E63.toInt() // Pink
         }
     }
+}
+
+/** Adapter for the list of individual typing sessions (matches Dart example). */
+private class IndividualTypingSessionsAdapter(private val sessions: List<TypingMetrics>) :
+    RecyclerView.Adapter<IndividualTypingSessionsAdapter.ViewHolder>() {
+
+    class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        val text: TextView = itemView.findViewById(android.R.id.text1)
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+        val view = LayoutInflater.from(parent.context)
+            .inflate(android.R.layout.simple_list_item_1, parent, false)
+        return ViewHolder(view)
+    }
+
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        val s = sessions[position]
+        val deepLabel = if (s.deepTyping) " (Deep Typing)" else ""
+        holder.text.text = "Session ${position + 1}$deepLabel: ${s.typingTapCount} taps, ${String.format("%.2f", s.typingSpeed)} taps/s, ${s.duration}s"
+    }
+
+    override fun getItemCount() = sessions.size
 }

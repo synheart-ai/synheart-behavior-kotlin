@@ -35,7 +35,7 @@ class AttentionSignalCollectorTest {
     }
 
     @Test
-    fun `onActivityResumed increments taskSwitchCount`() {
+    fun `onActivityPaused increments taskSwitchCount`() {
         collector.start()
 
         // Capture the registered callback
@@ -45,16 +45,13 @@ class AttentionSignalCollectorTest {
 
         assertEquals(0, collector.getAppSwitchCount())
 
-        // Simulate resume (app foreground logic calls onAppForegrounded)
-        callback.onActivityResumed(mock(android.app.Activity::class.java))
-        
-        // Should increment to 1
+        // App switch is counted when going to background (onActivityPaused -> onAppBackgrounded)
+        callback.onActivityResumed(mock(android.app.Activity::class.java)) // foreground
+        callback.onActivityPaused(mock(android.app.Activity::class.java))   // background -> count 1
         assertEquals(1, collector.getAppSwitchCount())
-        
-        // Simulate pause/resume
-        callback.onActivityPaused(mock(android.app.Activity::class.java))
+
         callback.onActivityResumed(mock(android.app.Activity::class.java))
-        
+        callback.onActivityPaused(mock(android.app.Activity::class.java))   // background -> count 2
         assertEquals(2, collector.getAppSwitchCount())
     }
     

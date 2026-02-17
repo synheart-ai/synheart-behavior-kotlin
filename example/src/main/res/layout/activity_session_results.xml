@@ -555,10 +555,23 @@
                     <TextView android:id="@+id/deepTypingBlocksValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
                 </LinearLayout>
 
-                <LinearLayout android:id="@+id/typingFragmentationRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                <LinearLayout android:id="@+id/typingFragmentationRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
                     <TextView android:id="@+id/typingFragmentationLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
                     <TextView android:id="@+id/typingFragmentationValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
                 </LinearLayout>
+
+                <LinearLayout android:id="@+id/clipboardActivityRateRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/clipboardActivityRateLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/clipboardActivityRateValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/correctionRateRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="8dp">
+                    <TextView android:id="@+id/correctionRateLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/correctionRateValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <TextView android:id="@+id/individualTypingSessionsTitle" android:layout_width="match_parent" android:layout_height="wrap_content" android:textStyle="bold" android:textSize="14sp" android:visibility="gone" android:layout_marginTop="8dp" android:layout_marginBottom="4dp" />
+                <androidx.recyclerview.widget.RecyclerView android:id="@+id/individualTypingSessionsList" android:layout_width="match_parent" android:layout_height="wrap_content" android:nestedScrollingEnabled="false" android:visibility="gone" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
