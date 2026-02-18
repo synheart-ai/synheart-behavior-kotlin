@@ -16,4 +16,5 @@
 local.properties
 
 .env
-env (2)
+env
+PUBLISHING.md
