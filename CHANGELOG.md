@@ -7,22 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.4.0] - 2026-02-13
 
-### Added
-
-- **TypingSessionSummary**: `clipboardActivityRate` and `correctionRate` (0.0–1.0) from Flux HSI `meta`. The SDK sends per-typing-session counts (backspace, copy, paste, cut) to Flux and reads the aggregated rates; no calculations are done in the SDK.
-- **Individual typing sessions**: Session summary now includes `individualTypingSessions` (list of per-session metrics from Flux `typing_metrics`).
-- **Documentation**: README and SYNHEART_FLUX_INTEGRATION updated for Flux v0.3.0+ requirement, typing summary from Flux, and troubleshooting when clipboard/correction rates are 0 (outdated `libsynheart_flux.so`).
-
 ### Changed
 
-- **Flux requirement**: Full typing summary (including clipboard and correction rates) requires **synheart-flux v0.3.0 or later**. Older `.so` versions will return 0 for these rates.
-- **FluxBridge**: Typing events now send `number_of_backspace`, `number_of_delete`, `number_of_copy`, `number_of_paste`, `number_of_cut` so Flux can compute the rates.
-- **Logging**: Removed temporary debug logging in FluxBridge (conversion and extraction) and SessionTracker (Flux call details).
+- **Publishing version bump**: Release version is now `0.4.0`.
+- **Remove Flux dependency**: Removed the `synheart-flux` JNI bridge and Flux-based metric extraction. The SDK no longer requires bundling any native `.so` libraries.
+- **Session tracking + metrics**: Updated session aggregation and metrics computation to run fully inside the SDK.
+
+### Removed
+
+- `FluxBridge` and Flux/HSI payload types that were only used for native Flux integration.
+- Native build artifacts and bundled Flux binaries:
+  - `src/main/cpp/*`
+  - `src/main/jniLibs/*`
+- `SYNHEART_FLUX_INTEGRATION.md` (no longer applicable).
 
 ### Documentation
 
-- README: Version 0.4.0, Flux v0.3.0+ recommendation, typing summary example with clipboard/correction rates, new troubleshooting entry for rates stuck at 0.
-- SYNHEART_FLUX_INTEGRATION: Flux v0.3.0 release link, "Typing Summary from Flux" section, clipboard/correction formulas and troubleshooting.
+- Updated `README.md` to remove Flux installation/troubleshooting and reflect the self-contained SDK.
 
 ## [0.3.0] - 2025-01-21
 

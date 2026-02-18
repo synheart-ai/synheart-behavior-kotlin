@@ -165,7 +165,7 @@ class SessionTrackerTest {
         val summary = tracker.getSessionSummary(emptyMap(), emptyMap(), emptyMap())
 
         assertNotNull(summary.typingSessionSummary)
-        // Without Flux (e.g. unit tests), default zeroed metrics are returned
+        // With no typing events, default zeroed metrics are returned
         assertTrue(summary.typingSessionSummary!!.typingSessionCount >= 0)
         assertTrue(summary.typingSessionSummary!!.averageKeystrokesPerSession >= 0.0)
         assertTrue(summary.typingSessionSummary!!.deepTypingBlocks >= 0)

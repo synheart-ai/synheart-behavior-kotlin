@@ -238,35 +238,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // Window features listeners removed - not needed for real-time event tracking
-    // private fun setupWindowFeaturesListeners() {
-    //     // Listen to short window features (updates every 5s)
-    //     behavior.onShortWindowFeatures
-    //             .onEach { features ->
-    //                 shortWindowFeatures = features
-    //                 // Example: Convert to HSI payload format
-    //                 val hsiPayload = behavior.toHSIPayload(features)
-    //                 if (hsiPayload != null) {
-    //                     // In production, send this payload to your HSI service
-    //                     // Log.d("Behavior", "HSI Payload: $hsiPayload")
-    //                 }
-    //             }
-    //             .launchIn(lifecycleScope)
-    //
-    //     // Listen to long window features (updates every 30s)
-    //     behavior.onLongWindowFeatures
-    //             .onEach { features ->
-    //                 longWindowFeatures = features
-    //                 // Example: Convert to HSI payload format
-    //                 val hsiPayload = behavior.toHSIPayload(features)
-    //                 if (hsiPayload != null) {
-    //                     // In production, send this payload to your HSI service
-    //                     // Log.d("Behavior", "HSI Payload: $hsiPayload")
-    //                 }
-    //             }
-    //             .launchIn(lifecycleScope)
-    // }
-
     private fun setupInputListeners() {
         // Attach gesture tracking to views
         behavior.attachToView(mainScrollView)

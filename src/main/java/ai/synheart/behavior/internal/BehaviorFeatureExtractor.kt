@@ -9,7 +9,7 @@ import kotlin.math.*
 /**
  * Extracts normalized behavior features from event windows.
  *
- * Computes all features from the Behavior → HSI Fusion Table.
+ * Computes all normalized behavior features from event windows.
  */
 @android.annotation.SuppressLint("NewApi")
 internal class BehaviorFeatureExtractor {

@@ -25,25 +25,6 @@ android {
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
-        
-        // CMake configuration for JNI bridge
-        externalNativeBuild {
-            cmake {
-                cppFlags "-std=c++17"
-            }
-        }
-        
-        ndk {
-            abiFilters 'arm64-v8a', 'armeabi-v7a', 'x86', 'x86_64'
-        }
-    }
-    
-    // CMake build configuration
-    externalNativeBuild {
-        cmake {
-            path "src/main/cpp/CMakeLists.txt"
-            version "3.18.1"
-        }
     }
 
     testOptions {
@@ -65,13 +46,6 @@ android {
 
     kotlinOptions {
         jvmTarget = '1.8'
-    }
-
-    // Include jniLibs for synheart-flux native library
-    sourceSets {
-        main {
-            jniLibs.srcDirs = ['src/main/jniLibs']
-        }
     }
 
     publishing {

@@ -37,40 +37,12 @@ dependencies {
 </dependency>
 ```
 
-### Required: synheart-flux (HSI metrics)
+### Native dependencies
 
-The SDK **requires** the native `synheart-flux` library (version **0.3.0** or later recommended) for computing all behavioral and typing metrics. Install it as follows:
+This SDK is **self-contained** and does **not** require bundling any native `.so` libraries.
 
-1. Download `synheart-flux-android-jniLibs.tar.gz` from the [synheart-flux releases page](https://github.com/synheart-ai/synheart-flux/releases) (use **v0.3.0 or later** for full typing summary, including clipboard and correction rates).
-2. Extract and copy the `.so` files into:
-
-```
-src/main/jniLibs/
-├── arm64-v8a/
-│   └── libsynheart_flux.so
-├── armeabi-v7a/
-│   └── libsynheart_flux.so
-└── x86_64/
-    └── libsynheart_flux.so
-```
-
-**Note**: The JNI bridge library (`libflux_jni_bridge.so`) is automatically built by the SDK's CMake configuration. You only need to provide `libsynheart_flux.so`.
-
-3. Verify Flux is available:
-
-```kotlin
-import ai.synheart.behavior.SynheartBehavior
-import ai.synheart.behavior.FluxBridge
-
-val sdk = SynheartBehavior.create(applicationContext)
-sdk.initialize()
-
-println("synheart-flux available: ${sdk.isFluxAvailable}")
-// or directly:
-println("synheart-flux available: ${FluxBridge.isAvailable()}")
-```
-
-For full details (usage, troubleshooting, building from source), see [`SYNHEART_FLUX_INTEGRATION.md`](SYNHEART_FLUX_INTEGRATION.md).
+- Motion inference uses ONNX Runtime via the `onnxruntime-android` Gradle dependency.
+- This repo intentionally does **not** ship or vendor Flux binaries.
 
 ## Quick Start
 
@@ -585,15 +557,6 @@ behavior.sendEvent(event)
 - Ensure the session was properly started
 - Check that the SDK is still initialized
 - Verify the session ID matches the active session
-- Ensure `libsynheart_flux.so` is present in `jniLibs` (see [SYNHEART_FLUX_INTEGRATION.md](SYNHEART_FLUX_INTEGRATION.md))
-
-### Typing summary clipboard/correction rates are 0
-
-**Problem**: `typingSessionSummary.clipboardActivityRate` or `correctionRate` are always 0 even when the user typed with copy/paste/cut or backspace.
-
-**Solutions**:
-
-- These values are computed by synheart-flux, not the SDK. Use **synheart-flux v0.3.0 or later** and replace the `.so` files in `src/main/jniLibs/<abi>/`. See [SYNHEART_FLUX_INTEGRATION.md](SYNHEART_FLUX_INTEGRATION.md).
 
 ### Build Errors
 

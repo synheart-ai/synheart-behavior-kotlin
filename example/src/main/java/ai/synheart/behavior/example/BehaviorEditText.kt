@@ -30,7 +30,7 @@ constructor(
     private var previousLength: Int = 0
     private val interKeyLatencies = mutableListOf<Int>() // Store latencies in milliseconds
 
-    // Backspace and clipboard (for Flux correction_rate and clipboard_activity_rate)
+    // Backspace and clipboard tracking (for correction_rate and clipboard_activity_rate)
     private var backspaceCount: Int = 0
     private var pasteCount: Int = 0
     private var copyCount: Int = 0
