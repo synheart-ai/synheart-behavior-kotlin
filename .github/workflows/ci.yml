@@ -19,15 +19,16 @@ jobs:
       with:
         java-version: '17'
         distribution: 'temurin'
+        cache: 'gradle'
 
-    - name: Setup Gradle
-      uses: gradle/gradle-build-action@v2
+    - name: Validate Gradle wrapper
+      uses: gradle/wrapper-validation-action@v2
 
     - name: Make gradlew executable
       run: chmod +x gradlew
 
     - name: Build with Gradle
-      run: ./gradlew build --no-daemon
+      run: ./gradlew build --no-daemon --stacktrace
 
     - name: Run tests
       run: ./gradlew test --no-daemon
@@ -57,9 +58,10 @@ jobs:
       with:
         java-version: '17'
         distribution: 'temurin'
+        cache: 'gradle'
 
-    - name: Setup Gradle
-      uses: gradle/gradle-build-action@v2
+    - name: Validate Gradle wrapper
+      uses: gradle/wrapper-validation-action@v2
 
     - name: Run lint
       run: |

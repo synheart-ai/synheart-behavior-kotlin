@@ -2,6 +2,7 @@ package ai.synheart.behavior
 
 import android.app.Notification
 import android.app.NotificationManager
+import android.os.Build
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
@@ -240,16 +241,25 @@ class SynheartNotificationListenerService : NotificationListenerService() {
         }
 
         // Filter out silent notifications (LOW or MIN importance)
-        val ranking = Ranking()
-        val rankingMap = currentRanking
-        if (rankingMap != null && rankingMap.getRanking(sbn.key, ranking)) {
-            val importance = ranking.importance
-            if (importance == NotificationManager.IMPORTANCE_LOW ||
-                            importance == NotificationManager.IMPORTANCE_MIN
-            ) {
-                Log.d(TAG, "Filtered: low importance notification from $packageName")
-                return false
-            }
+        val isSilentOrLowPriority =
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    val ranking = Ranking()
+                    val rankingMap = currentRanking
+                    if (rankingMap != null && rankingMap.getRanking(sbn.key, ranking)) {
+                        val importance = ranking.importance
+                        importance == NotificationManager.IMPORTANCE_LOW ||
+                                importance == NotificationManager.IMPORTANCE_MIN
+                    } else {
+                        false
+                    }
+                } else {
+                    val priority = notification.priority
+                    priority == Notification.PRIORITY_LOW || priority == Notification.PRIORITY_MIN
+                }
+
+        if (isSilentOrLowPriority) {
+            Log.d(TAG, "Filtered: low-importance/priority notification from $packageName")
+            return false
         }
 
         // Filter out persistent/ongoing notifications
