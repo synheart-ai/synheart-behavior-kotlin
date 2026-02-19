@@ -8,7 +8,7 @@ plugins {
 
 import java.util.Base64
 
-def sdkVersion = "0.4.0"
+def sdkVersion = "0.4.1"
 
 group = "ai.synheart"
 version = sdkVersion
@@ -133,9 +133,28 @@ afterEvaluate {
     }
     
     signing {
-        def signingKey = project.findProperty('GPG_PRIVATE_KEY') ?: System.getenv('GPG_PRIVATE_KEY') ?: ''
-        def signingKeyBase64 = project.findProperty('GPG_PRIVATE_KEY_BASE64') ?: System.getenv('GPG_PRIVATE_KEY_BASE64') ?: ''
-        def signingPassword = project.findProperty('GPG_PASSPHRASE') ?: System.getenv('GPG_PASSPHRASE') ?: ''
+        // Support both `GPG_*` and `SIGNING_*` naming (CI commonly uses ORG_GRADLE_PROJECT_SIGNING_*).
+        def signingKey = (
+            project.findProperty('GPG_PRIVATE_KEY')
+                ?: project.findProperty('SIGNING_KEY')
+                ?: System.getenv('GPG_PRIVATE_KEY')
+                ?: System.getenv('SIGNING_KEY')
+                ?: ''
+        )
+        def signingKeyBase64 = (
+            project.findProperty('GPG_PRIVATE_KEY_BASE64')
+                ?: project.findProperty('SIGNING_KEY_BASE64')
+                ?: System.getenv('GPG_PRIVATE_KEY_BASE64')
+                ?: System.getenv('SIGNING_KEY_BASE64')
+                ?: ''
+        )
+        def signingPassword = (
+            project.findProperty('GPG_PASSPHRASE')
+                ?: project.findProperty('SIGNING_PASSWORD')
+                ?: System.getenv('GPG_PASSPHRASE')
+                ?: System.getenv('SIGNING_PASSWORD')
+                ?: ''
+        )
 
         // Prefer base64 when provided (robust for CI / dotenv / shells).
         if (signingKeyBase64) {
