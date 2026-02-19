@@ -143,7 +143,7 @@ data class BehaviorEvent(
 
                 /**
                  * Create a typing event. Include [backspaceCount] and [numberOfCopy]/[numberOfPaste]/[numberOfCut]
-                 * so Flux can compute [TypingSessionSummary.correctionRate] and [TypingSessionSummary.clipboardActivityRate].
+                 * to compute [TypingSessionSummary.correctionRate] and [TypingSessionSummary.clipboardActivityRate].
                  */
                 fun typing(
                         sessionId: String,

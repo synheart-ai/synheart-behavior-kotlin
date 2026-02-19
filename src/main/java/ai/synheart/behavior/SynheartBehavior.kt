@@ -143,10 +143,6 @@ private constructor(private val context: Context, private var config: BehaviorCo
     val currentSessionId: String?
         get() = lock.read { currentSessionTracker?.sessionId }
 
-    /** Check if synheart-flux is available for HSI-compliant metrics computation. */
-    val isFluxAvailable: Boolean
-        get() = FluxBridge.isAvailable()
-
     // Track views to auto-attach collectors when sessions start
     private val attachedViews =
             java.util.Collections.synchronizedSet(
@@ -421,88 +417,6 @@ private constructor(private val context: Context, private var config: BehaviorCo
                 // windowAggregator.clear()
 
                 return summary
-            }
-
-    /**
-     * End a session and return HSI-compliant output using synheart-flux.
-     *
-     * If synheart-flux is not available, returns null. Use `endSession` as fallback.
-     *
-     * @param sessionId The session ID to end
-     * @param fluxProcessor Optional stateful processor with baselines
-     * @return HSI payload if Flux is available, null otherwise
-     */
-    fun endSessionWithHsi(sessionId: String, fluxProcessor: FluxBehaviorProcessor? = null): HsiBehaviorPayload? =
-            lock.write {
-                checkInitialized()
-
-                val tracker =
-                        currentSessionTracker
-                                ?: throw IllegalStateException("No active session found")
-
-                if (tracker.sessionId != sessionId) {
-                    throw IllegalArgumentException(
-                            "Session ID mismatch: active=${tracker.sessionId}, requested=$sessionId"
-                    )
-                }
-
-                // Stop all collectors
-                inputCollector?.stop()
-                attentionCollector?.stop()
-                gestureCollector?.stop()
-
-                // Stop motion collector and get motion data
-                val motionData =
-                        motionCollector?.stopSession()
-                                ?: emptyList<MotionSignalCollector.MotionDataPoint>()
-
-                // Sync app switch count from AttentionSignalCollector
-                attentionCollector?.let { collector ->
-                    val currentAppSwitchCount = collector.getAppSwitchCount()
-                    if (currentAppSwitchCount > 0) {
-                        tracker.updateAppSwitchCount(currentAppSwitchCount)
-                    }
-                }
-
-                // Get summaries from all collectors
-                val inputSummary = inputCollector?.getSessionSummary() ?: emptyMap()
-                val attentionSummary = attentionCollector?.getSessionSummary() ?: emptyMap()
-                val gestureSummary = gestureCollector?.getSessionSummary() ?: emptyMap()
-
-                // Convert motion data to SDK MotionDataPoint format
-                val motionDataForSummary: List<MotionDataPoint>? =
-                        if (config.enableMotionLite && motionData.isNotEmpty()) {
-                            motionData.map { dataPoint ->
-                                MotionDataPoint(
-                                        timestamp = dataPoint.timestamp,
-                                        features = dataPoint.features
-                                )
-                            }
-                        } else null
-
-                // Try to get HSI payload
-                val hsiPayload = tracker.getSessionSummaryWithHsi(
-                        inputSummary,
-                        attentionSummary,
-                        gestureSummary,
-                        motionDataForSummary,
-                        fluxProcessor
-                )
-
-                // Update lastAppUseTime
-                lastAppUseTime = System.currentTimeMillis()
-
-                // Store ended session
-                endedSessions[tracker.sessionId] = tracker
-
-                // Clean up collectors
-                inputCollector = null
-                attentionCollector = null
-                gestureCollector = null
-                motionCollector = null
-                currentSessionTracker = null
-
-                return@write hsiPayload
             }
 
     /** Get current rolling statistics snapshot. */
@@ -807,46 +721,6 @@ private constructor(private val context: Context, private var config: BehaviorCo
     //     longWindowJob?.cancel()
     //     shortWindowJob = null
     //     longWindowJob = null
-    // }
-
-    /**
-     * Convert window features to HSI (Human State Inference) payload format. (Commented out - not
-     * needed for real-time event tracking)
-     *
-     * @param features Window features to convert
-     * @param userId Anonymous user identifier (e.g., "anon_43a8cd")
-     * @param deviceId Device identifier (e.g., "synheart_android_14")
-     * @param behaviorVersion SDK version (e.g., "1.0.0")
-     * @param consentBehavior Whether behavior tracking consent is granted (default: true)
-     * @return HSI payload map, or null if features is null
-     */
-    // fun toHSIPayload(
-    //         features: BehaviorWindowFeatures?,
-    //         userId: String? = null,
-    //         deviceId: String? = null,
-    //         behaviorVersion: String = "1.0.0",
-    //         consentBehavior: Boolean = true
-    // ): Map<String, Any>? {
-    //     if (features == null || !isInitialized || isDisposed) return null
-    //
-    //     val generatedUserId = userId ?: generateUserId()
-    //     val generatedDeviceId = deviceId ?: generateDeviceId()
-    //
-    //     return features.toHSIPayload(
-    //             userId = generatedUserId,
-    //             deviceId = generatedDeviceId,
-    //             behaviorVersion = behaviorVersion,
-    //             consentBehavior = consentBehavior
-    //     )
-    // }
-
-    // private fun generateUserId(): String {
-    //     // Generate anonymous user ID
-    //     return "anon_${System.currentTimeMillis().toString(36)}"
-    // }
-
-    // private fun generateDeviceId(): String {
-    //     return "synheart_android_${Build.VERSION.SDK_INT}"
     // }
 
     /**

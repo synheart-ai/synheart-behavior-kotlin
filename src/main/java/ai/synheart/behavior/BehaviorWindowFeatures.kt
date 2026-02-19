@@ -4,7 +4,7 @@ package ai.synheart.behavior
  * Derived behavior features for a time window.
  *
  * Contains all normalized features computed from raw behavioral events, plus MLP inference outputs
- * (distraction_score and focus_hint). Matches the Behavior → HSI Fusion Table specification.
+ * (distraction_score and focus_hint).
  */
 data class BehaviorWindowFeatures(
         /** Normalized tap rate (0.0 to 1.0). */
@@ -81,52 +81,6 @@ data class BehaviorWindowFeatures(
                     timestamp = System.currentTimeMillis()
             )
         }
-    }
-
-    /**
-     * Convert to HSI (Human State Inference) payload format.
-     *
-     * Returns a JSON-compatible map matching the Behavior → HSI Fusion Table specification.
-     */
-    fun toHSIPayload(
-            userId: String,
-            deviceId: String,
-            behaviorVersion: String,
-            consentBehavior: Boolean = true
-    ): Map<String, Any> {
-        // Calculate window duration based on window type
-        val windowDurationSeconds = if (windowType == WindowType.SHORT) 30 else 300 // 30s or 5m
-        val windowStart = timestamp / 1000 // Convert to seconds
-        val windowEnd = windowStart + windowDurationSeconds
-
-        return mapOf(
-                "window_start" to windowStart,
-                "window_end" to windowEnd,
-                "user_id" to userId,
-                "device_id" to deviceId,
-                "behavior_version" to behaviorVersion,
-                "features" to
-                        mapOf(
-                                "tap_rate_norm" to tapRateNorm,
-                                "keystroke_rate_norm" to keystrokeRateNorm,
-                                "scroll_velocity_norm" to scrollVelocityNorm,
-                                "typing_cadence_stability" to typingCadenceStability,
-                                "scroll_cadence_stability" to scrollCadenceStability,
-                                "idle_ratio" to idleRatio,
-                                "switch_rate_norm" to switchRateNorm,
-                                "session_fragmentation" to sessionFragmentation,
-                                "burstiness" to burstiness,
-                                "notif_rate_norm" to notifRateNorm,
-                                "notif_open_rate_norm" to notifOpenRateNorm,
-                                "notification_load" to
-                                        notificationScore, // Note: spec uses "notification_load"
-                                "distraction_score" to distractionScore,
-                                "behavioral_focus_hint" to
-                                        focusHint // Note: spec uses "behavioral_focus_hint"
-                        ),
-                "consent" to mapOf("behavior" to consentBehavior),
-                "source" to "behavior_sdk"
-        )
     }
 
     fun toMap(): Map<String, Any> {

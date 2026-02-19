@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.1] - 2026-02-18
+
+### Changed
+
+- **Packaging**: Removed Flux JNI bridge and any bundled native libraries so the SDK is ready for Maven Central publishing without shipping `.so` artifacts.
+- **Docs**: Updated README to remove Flux installation/troubleshooting and added `PUBLISHING.md` with Maven Local + Sonatype publish steps.
+
+### Build
+
+- **Repo hygiene**: Stop tracking generated Gradle outputs and ignore `**/build/` (fixes accidentally committed `example/build` artifacts).
+
 ## [0.4.0] - 2026-02-13
 
 ### Added

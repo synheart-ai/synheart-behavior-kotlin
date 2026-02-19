@@ -9,10 +9,12 @@
 /.idea/assetWizardSettings.xml
 .DS_Store
 /build
+**/build/
 /captures
 .externalNativeBuild
 .cxx
 local.properties
 
 .env
-env (2)
+env
+PUBLISHING.md

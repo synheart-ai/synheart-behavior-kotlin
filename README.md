@@ -1,6 +1,9 @@
 # Synheart Behavioral SDK for Android
 
+[![CI](https://github.com/synheart-ai/synheart-behavior-kotlin/actions/workflows/ci.yml/badge.svg)](https://github.com/synheart-ai/synheart-behavior-kotlin/actions/workflows/ci.yml)
 [![Maven Central](https://img.shields.io/maven-central/v/ai.synheart/synheart-behavior.svg)](https://central.sonatype.com/artifact/ai.synheart/synheart-behavior)
+[![Platform](https://img.shields.io/badge/platform-Android%20API%2021%2B-brightgreen)](https://developer.android.com)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
 A privacy-preserving mobile SDK that collects digital behavioral signals from smartphones. These timing-based signals represent biobehavioral markers correlated with cognitive and emotional states, especially focus, stress, engagement, and fatigue.
 
@@ -23,7 +26,7 @@ Add to your `build.gradle`:
 
 ```gradle
 dependencies {
-    implementation 'ai.synheart:synheart-behavior:0.4.0'
+    implementation 'ai.synheart:synheart-behavior:0.4.1'
 }
 ```
 
@@ -33,44 +36,16 @@ dependencies {
 <dependency>
     <groupId>ai.synheart</groupId>
     <artifactId>synheart-behavior</artifactId>
-    <version>0.4.0</version>
+    <version>0.4.1</version>
 </dependency>
 ```
 
-### Required: synheart-flux (HSI metrics)
+### Native dependencies
 
-The SDK **requires** the native `synheart-flux` library (version **0.3.0** or later recommended) for computing all behavioral and typing metrics. Install it as follows:
+This SDK is **self-contained** and does **not** require bundling any native `.so` libraries.
 
-1. Download `synheart-flux-android-jniLibs.tar.gz` from the [synheart-flux releases page](https://github.com/synheart-ai/synheart-flux/releases) (use **v0.3.0 or later** for full typing summary, including clipboard and correction rates).
-2. Extract and copy the `.so` files into:
-
-```
-src/main/jniLibs/
-├── arm64-v8a/
-│   └── libsynheart_flux.so
-├── armeabi-v7a/
-│   └── libsynheart_flux.so
-└── x86_64/
-    └── libsynheart_flux.so
-```
-
-**Note**: The JNI bridge library (`libflux_jni_bridge.so`) is automatically built by the SDK's CMake configuration. You only need to provide `libsynheart_flux.so`.
-
-3. Verify Flux is available:
-
-```kotlin
-import ai.synheart.behavior.SynheartBehavior
-import ai.synheart.behavior.FluxBridge
-
-val sdk = SynheartBehavior.create(applicationContext)
-sdk.initialize()
-
-println("synheart-flux available: ${sdk.isFluxAvailable}")
-// or directly:
-println("synheart-flux available: ${FluxBridge.isAvailable()}")
-```
-
-For full details (usage, troubleshooting, building from source), see [`SYNHEART_FLUX_INTEGRATION.md`](SYNHEART_FLUX_INTEGRATION.md).
+- Motion inference uses ONNX Runtime via the `onnxruntime-android` Gradle dependency.
+- This repo intentionally does **not** ship or vendor Flux binaries.
 
 ## Quick Start
 
@@ -531,11 +506,59 @@ behavior.sendEvent(event)
 - ✅ **No network transmission**: Zero network activity
 - ✅ **GDPR/CCPA-ready**: Compliant with privacy regulations
 
-## Platform Support
+## Architecture
 
-- ✅ **Android**: API 21+ (Android 5.0+)
-- ✅ **Kotlin**: 1.9.0+
-- ✅ **Gradle**: 8.0+
+```
+┌──────────────────────────────────────────────────────┐
+│                  Your Android App                     │
+│                                                       │
+│  ┌─────────────────────────────────────────────────┐  │
+│  │           SynheartBehavior SDK                   │  │
+│  │                                                  │  │
+│  │  BehaviorConfig ──► SynheartBehavior.create()    │  │
+│  │                           │                      │  │
+│  │       ┌───────────────────┼───────────────┐      │  │
+│  │       ▼                   ▼               ▼      │  │
+│  │  GestureCollector  AttentionSignal  MotionSignal  │  │
+│  │  (scroll, tap,     Collector        Collector     │  │
+│  │   swipe)           (app switch,     (accel/gyro,  │  │
+│  │       │             idle, notif)     ONNX ML)     │  │
+│  │       │                   │               │      │  │
+│  │       └─────────┬─────────┘───────────────┘      │  │
+│  │                 ▼                                 │  │
+│  │          SessionTracker                           │  │
+│  │          (events, stats, windowing)               │  │
+│  │                 │                                 │  │
+│  │                 ▼                                 │  │
+│  │     BehaviorSessionSummary                        │  │
+│  │     (metrics, typing summary, motion state)       │  │
+│  └─────────────────┼────────────────────────────────┘  │
+│                    ▼                                   │
+│       Flow<BehaviorEvent> / Callback                  │
+└──────────────────────────────────────────────────────┘
+         │
+         ▼ (passed to synheart-core for HSI ingestion)
+```
+
+Signals flow: **Collectors → SessionTracker → BehaviorSessionSummary**.
+The SDK never generates HSI directly — it collects and normalizes behavioral signals.
+
+## Testing
+
+```bash
+./gradlew test
+./gradlew lint
+./gradlew assembleRelease
+```
+
+## Related Projects
+
+| Repository | Description |
+|---|---|
+| [synheart-behavior](https://github.com/synheart-ai/synheart-behavior) | Specification & docs (Source of Truth) |
+| [synheart-behavior-dart](https://github.com/synheart-ai/synheart-behavior-dart) | Flutter/Dart SDK |
+| [synheart-behavior-swift](https://github.com/synheart-ai/synheart-behavior-swift) | iOS/Swift SDK |
+| [synheart-behavior-chrome](https://github.com/synheart-ai/synheart-behavior-chrome) | Chrome extension |
 
 ## Requirements
 
@@ -585,15 +608,6 @@ behavior.sendEvent(event)
 - Ensure the session was properly started
 - Check that the SDK is still initialized
 - Verify the session ID matches the active session
-- Ensure `libsynheart_flux.so` is present in `jniLibs` (see [SYNHEART_FLUX_INTEGRATION.md](SYNHEART_FLUX_INTEGRATION.md))
-
-### Typing summary clipboard/correction rates are 0
-
-**Problem**: `typingSessionSummary.clipboardActivityRate` or `correctionRate` are always 0 even when the user typed with copy/paste/cut or backspace.
-
-**Solutions**:
-
-- These values are computed by synheart-flux, not the SDK. Use **synheart-flux v0.3.0 or later** and replace the `.so` files in `src/main/jniLibs/<abi>/`. See [SYNHEART_FLUX_INTEGRATION.md](SYNHEART_FLUX_INTEGRATION.md).
 
 ### Build Errors
 
@@ -622,7 +636,59 @@ The example app includes:
 
 ## API Reference
 
-For detailed API documentation, see the [Maven Central package page](https://central.sonatype.com/artifact/ai.synheart/synheart-behavior).
+### SynheartBehavior
+
+```kotlin
+class SynheartBehavior {
+    companion object {
+        fun create(context: Context, config: BehaviorConfig = BehaviorConfig()): SynheartBehavior
+    }
+
+    // Lifecycle
+    fun initialize()
+    fun dispose()
+    val isInitialized: Boolean
+
+    // Sessions
+    fun startSession(sessionId: String? = null): BehaviorSession
+    fun endSession(sessionId: String): BehaviorSessionSummary
+    val currentSessionId: String?
+
+    // Events & stats
+    fun setEventHandler(handler: (BehaviorEvent) -> Unit)
+    val onEvent: Flow<BehaviorEvent>
+    fun sendEvent(event: BehaviorEvent)
+    fun getCurrentStats(): BehaviorStats
+
+    // View tracking
+    fun attachToView(view: View)
+
+    // On-demand metrics
+    fun calculateMetricsForTimeRange(
+        startTimestampSeconds: Int,
+        endTimestampSeconds: Int,
+        sessionId: String? = null
+    ): Map<String, Any?>
+
+    // Configuration
+    fun updateConfig(newConfig: BehaviorConfig)
+}
+```
+
+### Key Types
+
+| Type | Description |
+|---|---|
+| `BehaviorConfig` | SDK configuration (signals, batching, consent, motion) |
+| `BehaviorEvent` | Single behavioral event with factory methods (`.scroll()`, `.tap()`, `.swipe()`, `.typing()`, etc.) |
+| `BehaviorEventType` | `SCROLL`, `TAP`, `SWIPE`, `NOTIFICATION`, `CALL`, `TYPING`, `CLIPBOARD`, `APP_SWITCH` |
+| `BehaviorSession` | Active session handle |
+| `BehaviorSessionSummary` | Aggregated session metrics (activity, behavioral, typing, motion, notification) |
+| `BehaviorStats` | Real-time metrics snapshot |
+| `MotionState` | ML-inferred motion state (LAYING, MOVING, SITTING, STANDING) |
+| `TypingSessionSummary` | Typing metrics (cadence, burstiness, clipboard/correction rates) |
+
+For full API docs, see the [Maven Central package page](https://central.sonatype.com/artifact/ai.synheart/synheart-behavior).
 
 ## Contributing
 

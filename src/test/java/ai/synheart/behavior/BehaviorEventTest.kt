@@ -109,7 +109,7 @@ class BehaviorEventTest {
     }
 
     @Test
-    fun `typing event includes backspace and clipboard counts for Flux`() {
+    fun `typing event includes backspace and clipboard counts`() {
         val typingEvent = BehaviorEvent.typing(
             sessionId = sessionId,
             typingTapCount = 10,
