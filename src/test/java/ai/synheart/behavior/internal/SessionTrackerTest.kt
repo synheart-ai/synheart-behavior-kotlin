@@ -5,12 +5,11 @@ import ai.synheart.behavior.BehaviorEventType
 import android.content.Context
 import android.content.res.Configuration
 import android.content.res.Resources
+import io.mockk.*
+import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.Assert.*
-import org.mockito.Mock
-import org.mockito.Mockito.`when`
-import org.mockito.MockitoAnnotations
 import java.time.Instant
 
 class SessionTrackerTest {
@@ -18,25 +17,26 @@ class SessionTrackerTest {
     private lateinit var tracker: SessionTracker
     private val sessionId = "test-session"
 
-    @Mock lateinit var context: Context
-    @Mock lateinit var resources: Resources
-    @Mock lateinit var configuration: Configuration
+    private lateinit var context: Context
+    private lateinit var resources: Resources
 
     @Before
     fun setup() {
-        MockitoAnnotations.openMocks(this)
-        
+        context = mockk(relaxed = true)
+        resources = mockk(relaxed = true)
+
         // Mock minimal context requirements to prevent NPE in init
-        `when`(context.resources).thenReturn(resources)
-        `when`(resources.configuration).thenReturn(configuration)
-        configuration.orientation = Configuration.ORIENTATION_PORTRAIT
-        
-        // Other context calls (getSystemService, etc.) are wrapped in try-catch in SessionTracker
-        // so we don't strictly need to mock them for basic initialization success, 
-        // as long as they throw or return null handled by the try-catch blocks.
-        // But for cleaner logs, we can mock getSystemService to return null.
-        
+        every { context.resources } returns resources
+        every { resources.configuration } returns Configuration().apply {
+            orientation = Configuration.ORIENTATION_PORTRAIT
+        }
+
         tracker = SessionTracker(sessionId, context, 0L)
+    }
+
+    @After
+    fun tearDown() {
+        unmockkAll()
     }
 
     @Test
@@ -96,23 +96,18 @@ class SessionTrackerTest {
         val summary = tracker.getSessionSummary(emptyMap(), emptyMap(), emptyMap())
 
         assertTrue(summary.durationMs >= 100)
-        
+
         val summaryStart = try { Instant.parse(summary.startAt).toEpochMilli() } catch (e: Exception) { 0L }
         assertTrue(kotlin.math.abs(startTime - summaryStart) < 1000)
     }
 
     @Test
     fun `getSessionSummary handles stability and fragmentation indices via map`() {
-        // These are passed via attentionSummary map
         val attentionSummary = mapOf(
             "stabilityIndex" to 0.9,
             "fragmentationIndex" to 0.2
         )
-        // Note: SessionTracker.getSessionSummary does NOT directly copy these into BehaviorSessionSummary
-        // BehaviorSessionSummary.behavioralMetrics are computed internally in SessionTracker based on events.
-        // So verifying them here requires emitting events that influence them, 
-        // OR acknowledging that passing them in the map might not affect specific summary fields if logic differs.
-        
+
         // Just verify method call doesn't crash
         val summary = tracker.getSessionSummary(emptyMap(), attentionSummary, emptyMap())
         assertNotNull(summary)
@@ -165,7 +160,6 @@ class SessionTrackerTest {
         val summary = tracker.getSessionSummary(emptyMap(), emptyMap(), emptyMap())
 
         assertNotNull(summary.typingSessionSummary)
-        // With no typing events, default zeroed metrics are returned
         assertTrue(summary.typingSessionSummary!!.typingSessionCount >= 0)
         assertTrue(summary.typingSessionSummary!!.averageKeystrokesPerSession >= 0.0)
         assertTrue(summary.typingSessionSummary!!.deepTypingBlocks >= 0)
@@ -175,13 +169,13 @@ class SessionTrackerTest {
     fun `calculateMetricsForTimeRange filters events correctly`() {
         val startTime = tracker.getStartTimestamp()
         val event1 = createTestEvent(BehaviorEventType.TAP).copy(
-            timestamp = java.time.Instant.ofEpochMilli(startTime + 100).toString()
+            timestamp = Instant.ofEpochMilli(startTime + 100).toString()
         )
         val event2 = createTestEvent(BehaviorEventType.SCROLL).copy(
-            timestamp = java.time.Instant.ofEpochMilli(startTime + 500).toString()
+            timestamp = Instant.ofEpochMilli(startTime + 500).toString()
         )
         val event3 = createTestEvent(BehaviorEventType.TAP).copy(
-            timestamp = java.time.Instant.ofEpochMilli(startTime + 2000).toString()
+            timestamp = Instant.ofEpochMilli(startTime + 2000).toString()
         )
 
         tracker.recordEvent(event1)
@@ -225,7 +219,7 @@ class SessionTrackerTest {
     private fun createTestEvent(type: BehaviorEventType): BehaviorEvent {
         return BehaviorEvent(
             sessionId = sessionId,
-            timestamp = java.time.Instant.now().toString(),
+            timestamp = Instant.now().toString(),
             eventType = type,
             metrics = emptyMap()
         )
