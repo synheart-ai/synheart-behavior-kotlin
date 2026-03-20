@@ -137,6 +137,18 @@ class SessionTrackerTest {
     }
 
     @Test
+    fun `getSessionSummary does not compute behavioral metrics locally`() {
+        tracker.recordEvent(createTestEvent(BehaviorEventType.TAP))
+        tracker.recordEvent(createTestEvent(BehaviorEventType.SCROLL))
+
+        val summary = tracker.getSessionSummary(emptyMap(), emptyMap(), emptyMap())
+
+        // Behavioral metrics (distraction_score, burstiness, etc.) are computed
+        // by session-runtime, not the behavior SDK
+        assertNull(summary.behavioralMetrics)
+    }
+
+    @Test
     fun `getSessionSummary includes typing session summary when typing events present`() {
         val typingEvent = BehaviorEvent.typing(
             sessionId = sessionId,
@@ -160,60 +172,9 @@ class SessionTrackerTest {
         val summary = tracker.getSessionSummary(emptyMap(), emptyMap(), emptyMap())
 
         assertNotNull(summary.typingSessionSummary)
-        assertTrue(summary.typingSessionSummary!!.typingSessionCount >= 0)
-        assertTrue(summary.typingSessionSummary!!.averageKeystrokesPerSession >= 0.0)
-        assertTrue(summary.typingSessionSummary!!.deepTypingBlocks >= 0)
-    }
-
-    @Test
-    fun `calculateMetricsForTimeRange filters events correctly`() {
-        val startTime = tracker.getStartTimestamp()
-        val event1 = createTestEvent(BehaviorEventType.TAP).copy(
-            timestamp = Instant.ofEpochMilli(startTime + 100).toString()
-        )
-        val event2 = createTestEvent(BehaviorEventType.SCROLL).copy(
-            timestamp = Instant.ofEpochMilli(startTime + 500).toString()
-        )
-        val event3 = createTestEvent(BehaviorEventType.TAP).copy(
-            timestamp = Instant.ofEpochMilli(startTime + 2000).toString()
-        )
-
-        tracker.recordEvent(event1)
-        tracker.recordEvent(event2)
-        tracker.recordEvent(event3)
-
-        // Range from session start to "now"; events are within session so should be included
-        val startSeconds = (startTime / 1000).toInt()
-        val endSeconds = (System.currentTimeMillis() / 1000).toInt() + 1
-
-        val metrics = tracker.calculateMetricsForTimeRange(
-            startTimestampSeconds = startSeconds,
-            endTimestampSeconds = endSeconds
-        )
-
-        val activitySummary = metrics["activity_summary"] as Map<*, *>
-        val totalEvents = (activitySummary["total_events"] as? Number)?.toInt() ?: -1
-        assertTrue(
-            "total_events should be 1..3 (was $totalEvents); time-range filtering may vary by run",
-            totalEvents in 1..3
-        )
-    }
-
-    @Test
-    fun `calculateMetricsForTimeRange throws exception for out of bounds time range`() {
-        val startTime = tracker.getStartTimestamp()
-        val startSeconds = (startTime - 5000) / 1000 // Before session start
-        val endSeconds = (startTime + 10000) / 1000
-
-        try {
-            tracker.calculateMetricsForTimeRange(
-                startTimestampSeconds = startSeconds.toInt(),
-                endTimestampSeconds = endSeconds.toInt()
-            )
-            fail("Should have thrown IllegalArgumentException")
-        } catch (e: IllegalArgumentException) {
-            assertTrue(e.message?.contains("out of session bounds") == true)
-        }
+        assertEquals(1, summary.typingSessionSummary!!.typingSessionCount)
+        assertEquals(1, summary.typingSessionSummary!!.individualTypingSessions.size)
+        assertEquals(30, summary.typingSessionSummary!!.individualTypingSessions[0].typingTapCount)
     }
 
     private fun createTestEvent(type: BehaviorEventType): BehaviorEvent {

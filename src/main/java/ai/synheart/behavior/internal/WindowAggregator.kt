@@ -79,7 +79,7 @@ internal class WindowAggregator {
         while (events.isNotEmpty()) {
             val eventTime = parseTimestamp(events.first.timestamp)
             if (eventTime < cutoffTime) {
-                events.removeFirst()
+                events.pollFirst()
             } else {
                 break
             }

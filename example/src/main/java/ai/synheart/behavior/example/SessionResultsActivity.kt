@@ -745,73 +745,15 @@ class SessionResultsActivity : AppCompatActivity() {
             return
         }
 
-        val startTimestampSeconds = (selectedStartMs / 1000).toInt()
-        val endTimestampSeconds = (selectedEndMs / 1000).toInt()
-
-        android.util.Log.d(
-                "SessionResults",
-                """
-            ========================================
-            CALCULATE METRICS FOR TIME RANGE
-            ========================================
-            Session ID: ${summary.sessionId}
-            Start Time (UTC): ${selectedStartTime!!.toInstant()}
-            End Time (UTC): ${selectedEndTime!!.toInstant()}
-            Start Time (Local): ${selectedStartTime!!}
-            End Time (Local): ${selectedEndTime!!}
-            Start Timestamp (seconds): $startTimestampSeconds
-            End Timestamp (seconds): $endTimestampSeconds
-            Duration: ${endTimestampSeconds - startTimestampSeconds} seconds
-            Duration: ${formatMs((endTimestampSeconds - startTimestampSeconds) * 1000L)}
-            ========================================
-        """.trimIndent()
-        )
-
-        try {
-            android.util.Log.d("SessionResults", "Calling calculateMetricsForTimeRange...")
-            val result =
-                    behavior.calculateMetricsForTimeRange(
-                            startTimestampSeconds = startTimestampSeconds,
-                            endTimestampSeconds = endTimestampSeconds,
-                            sessionId = summary.sessionId
-                    )
-
-            // Log the results (matching Flutter's output format)
-            android.util.Log.d(
-                    "SessionResults",
-                    """
-                
-                ========================================
-                SESSION BEHAVIOR METRICS
-                ========================================
-                
-                "session behavior" : {
-                    "session_id": "${summary.sessionId}",
-                    "start_at": "${selectedStartTime!!.toInstant()}",
-                    "end_at": "${selectedEndTime!!.toInstant()}",
-                    "micro_session": ${summary.microSession},
-                    "OS": "${summary.os}",
-                    ${if (summary.appId != null) "\"app_id\": \"${summary.appId}\"," else ""}
-                    "session_spacing": ${summary.sessionSpacing},
-                    
-                    ${formatMetricsMap(result)}
-                }
-                
-                ========================================
-            """.trimIndent()
-            )
-
-            // Show results in a scrollable dialog
-            showMetricsDialog(result, summary)
-        } catch (e: Exception) {
-            android.util.Log.e("SessionResults", "ERROR calculating metrics: ${e.message}", e)
-            AlertDialog.Builder(this)
-                    .setTitle("Error")
-                    .setMessage("Failed to calculate metrics: ${e.message}")
-                    .setPositiveButton("OK", null)
-                    .show()
-        }
+        // calculateMetricsForTimeRange removed — behavioral metrics are now
+        // computed by session-runtime, not the behavior SDK.
+        AlertDialog.Builder(this)
+                .setTitle("Not Available")
+                .setMessage("Time-range metrics are now computed by the Synheart runtime pipeline, not the behavior SDK.")
+                .setPositiveButton("OK", null)
+                .show()
     }
+
 
     private fun showMetricsDialog(metrics: Map<String, Any?>, summary: BehaviorSessionSummary) {
         val dialogView = layoutInflater.inflate(R.layout.dialog_metrics, null)

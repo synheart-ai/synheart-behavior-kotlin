@@ -50,7 +50,7 @@ class BehaviorSessionTest {
         assertEquals("Android 14", summary.os)
         assertEquals(0.5, summary.deviceContext.avgScreenBrightness, 0.001)
         assertEquals(100, summary.activitySummary.totalEvents)
-        assertEquals(0.2, summary.behavioralMetrics.behavioralDistractionScore, 0.001)
+        assertEquals(0.2, summary.behavioralMetrics!!.behavioralDistractionScore, 0.001)
     }
 
     @Test
