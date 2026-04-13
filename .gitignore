@@ -18,3 +18,8 @@ local.properties
 .env
 env
 PUBLISHING.md
+
+# Secrets & credentials
+*.asc
+*.key
+*private*

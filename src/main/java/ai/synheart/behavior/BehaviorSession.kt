@@ -229,34 +229,38 @@ data class TypingMetrics(
         }
 }
 
-/** Typing session summary aggregated across all typing sessions in the app session. */
+/**
+ * Typing session summary. Contains individual per-typing-session metrics (per-event data)
+ * and count. Aggregate fields (averages, ratios) are computed by session-runtime, not locally.
+ * They default to 0.0 for backwards compatibility.
+ */
 data class TypingSessionSummary(
         /** Number of distinct typing sessions */
         val typingSessionCount: Int,
         /** Average taps per typing session */
-        val averageKeystrokesPerSession: Double,
+        val averageKeystrokesPerSession: Double = 0.0,
         /** Average duration per typing session (seconds) */
-        val averageTypingSessionDuration: Double,
+        val averageTypingSessionDuration: Double = 0.0,
         /** Average typing speed across all sessions */
-        val averageTypingSpeed: Double,
+        val averageTypingSpeed: Double = 0.0,
         /** Average gap duration between keystrokes */
-        val averageTypingGap: Double,
+        val averageTypingGap: Double = 0.0,
         /** Average inter-tap interval across all sessions */
-        val averageInterTapInterval: Double,
+        val averageInterTapInterval: Double = 0.0,
         /** Overall cadence stability */
-        val typingCadenceStability: Double,
+        val typingCadenceStability: Double = 0.0,
         /** Overall burstiness measure */
-        val burstinessOfTyping: Double,
+        val burstinessOfTyping: Double = 0.0,
         /** Total time spent typing (seconds) */
-        val totalTypingDuration: Int,
+        val totalTypingDuration: Int = 0,
         /** Ratio of typing time to total session time */
-        val activeTypingRatio: Double,
+        val activeTypingRatio: Double = 0.0,
         /** Typing's contribution to overall intensity */
-        val typingContributionToInteractionIntensity: Double,
+        val typingContributionToInteractionIntensity: Double = 0.0,
         /** Number of deep typing blocks */
-        val deepTypingBlocks: Int,
+        val deepTypingBlocks: Int = 0,
         /** Measure of typing fragmentation */
-        val typingFragmentation: Double,
+        val typingFragmentation: Double = 0.0,
         /**
          * Clipboard activity rate (0.0-1.0). Computed from per-session counts:
          * (number_of_copy + number_of_paste + number_of_cut) / (typing_tap_count + copy + paste + cut).
@@ -394,8 +398,8 @@ data class BehaviorSessionSummary(
         /** Activity summary. */
         val activitySummary: ActivitySummary,
 
-        /** Behavioral metrics. */
-        val behavioralMetrics: BehavioralMetrics,
+        /** Behavioral metrics. Null when computed by session-runtime instead of locally. */
+        val behavioralMetrics: BehavioralMetrics? = null,
 
         /** Notification summary. */
         val notificationSummary: NotificationSummary,

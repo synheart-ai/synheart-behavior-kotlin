@@ -12,7 +12,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
-import java.time.Instant
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
@@ -31,8 +30,7 @@ private constructor(private val context: Context, private var config: BehaviorCo
     private var _isInitialized = false
     private var isDisposed = false
     private var currentSessionTracker: SessionTracker? = null
-    // Store ended sessions to allow calculateMetricsForTimeRange to access them
-    // (matching Flutter SDK behavior - sessions are kept until next session starts)
+    // Store ended sessions for raw event access after session end
     private val endedSessions = java.util.concurrent.ConcurrentHashMap<String, SessionTracker>()
     private var lastAppUseTime: Long? = null // For session spacing calculation
     private var eventHandler: ((BehaviorEvent) -> Unit)? = null
@@ -402,7 +400,7 @@ private constructor(private val context: Context, private var config: BehaviorCo
                     }
                 }
 
-                // Store ended session in map (don't remove - allows calculateMetricsForTimeRange to
+                // Store ended session in map (don't remove - allows raw event access after
                 // access it)
                 // This matches Flutter SDK behavior where sessionData is kept until next session
                 // starts
@@ -814,163 +812,6 @@ private constructor(private val context: Context, private var config: BehaviorCo
                 handleEvent(event)
                 currentSessionTracker?.recordEvent(event)
             }
-
-    /**
-     * Calculate metrics for a specific time range within a session.
-     *
-     * This method retrieves events and motion data for the specified time range and calculates
-     * behavioral metrics dynamically.
-     *
-     * @param startTimestampSeconds Start timestamp in seconds (Unix epoch)
-     * @param endTimestampSeconds End timestamp in seconds (Unix epoch)
-     * @param sessionId Optional session ID. If not provided, uses the current active session.
-     * @return Map containing calculated metrics including behavioral_metrics, device_context,
-     * ```
-     *         system_state, motion_state, motion_data, activity_summary, notification_summary,
-     *         typing_session_summary
-     * ```
-     */
-    fun calculateMetricsForTimeRange(
-            startTimestampSeconds: Int,
-            endTimestampSeconds: Int,
-            sessionId: String? = null
-    ): Map<String, Any?> = runBlocking {
-        lock.read {
-            checkInitialized()
-
-            val sessionIdToUse =
-                    sessionId
-                            ?: currentSessionTracker?.sessionId
-                                    ?: throw IllegalStateException(
-                                    "No active session and no sessionId provided"
-                            )
-
-            // Check both active and ended sessions (matching Flutter SDK behavior)
-            val tracker =
-                    currentSessionTracker
-                            ?: endedSessions[sessionIdToUse]
-                                    ?: throw IllegalStateException(
-                                    "Session not found: $sessionIdToUse"
-                            )
-
-            if (tracker.sessionId != sessionIdToUse) {
-                throw IllegalArgumentException(
-                        "Session ID mismatch: tracker=${tracker.sessionId}, requested=$sessionIdToUse"
-                )
-            }
-
-            // Get motion data for the time range
-            val startTimestampMs = startTimestampSeconds * 1000L
-            val endTimestampMs = endTimestampSeconds * 1000L
-
-            val allMotionData: List<MotionDataPoint> =
-                    if (currentSessionTracker != null &&
-                                    currentSessionTracker?.sessionId == sessionIdToUse
-                    ) {
-                        // Session is still active - get current motion data from collector
-                        val currentMotionData =
-                                motionCollector?.getCurrentMotionData() ?: emptyList()
-                        currentMotionData
-                                .map { dataPoint ->
-                                    MotionDataPoint(
-                                            timestamp = dataPoint.timestamp,
-                                            features = dataPoint.features
-                                    )
-                                }
-                                .filter { dataPoint ->
-                                    try {
-                                        val dataPointTime =
-                                                Instant.parse(dataPoint.timestamp).toEpochMilli()
-                                        dataPointTime >= startTimestampMs &&
-                                                dataPointTime <= endTimestampMs
-                                    } catch (e: Exception) {
-                                        false // Skip invalid timestamps
-                                    }
-                                }
-                    } else {
-                        // Session has ended - motion data should be retrieved from stored data in
-                        // tracker
-                        // For now, return empty list (motion data persistence can be added later)
-                        emptyList<MotionDataPoint>()
-                    }
-
-            // Convert motion data to map format for metrics
-            val motionDataList: List<Map<String, Any>> =
-                    allMotionData.map { dataPoint ->
-                        mapOf("timestamp" to dataPoint.timestamp, "features" to dataPoint.features)
-                    }
-
-            var metrics =
-                    tracker.calculateMetricsForTimeRange(
-                            startTimestampSeconds = startTimestampSeconds,
-                            endTimestampSeconds = endTimestampSeconds
-                    )
-
-            // Add motion data to metrics
-            if (motionDataList.isNotEmpty()) {
-                metrics = metrics.toMutableMap().apply { put("motion_data", motionDataList) }
-            }
-
-            // Run motion state inference if motion data is available
-            if (motionDataList != null && motionDataList.isNotEmpty() && config.enableMotionLite) {
-                if (!motionStateInference.getIsLoaded()) {
-                    try {
-                        motionStateInference.loadModel()
-                    } catch (e: Exception) {
-                        android.util.Log.w(
-                                "SynheartBehavior",
-                                "Failed to load motion state model: ${e.message}"
-                        )
-                    }
-                }
-
-                if (motionStateInference.getIsLoaded()) {
-                    try {
-                        // Convert motion data from map format to MotionDataPoint list
-                        val motionDataPoints =
-                                motionDataList.mapNotNull { item ->
-                                    if (item is Map<*, *>) {
-                                        val map =
-                                                item.mapKeys { it.key.toString() }.mapValues {
-                                                    it.value
-                                                }
-                                        val featuresMap =
-                                                (map["features"] as? Map<*, *>)?.let {
-                                                    it.mapKeys { it.key.toString() }.mapValues {
-                                                        (it.value as? Number)?.toDouble() ?: 0.0
-                                                    }
-                                                }
-                                                        ?: emptyMap<String, Double>()
-                                        MotionDataPoint(
-                                                timestamp = (map["timestamp"] as? String) ?: "",
-                                                features = featuresMap
-                                        )
-                                    } else null
-                                }
-
-                        if (motionDataPoints.isNotEmpty()) {
-                            val motionState =
-                                    motionStateInference.inferMotionState(motionDataPoints)
-                            // Update metrics with computed motion state
-                            metrics =
-                                    metrics.toMutableMap().apply {
-                                        put("motion_state", motionState.toJson())
-                                    }
-                        }
-                    } catch (e: Exception) {
-                        android.util.Log.e(
-                                "SynheartBehavior",
-                                "Failed to run motion state inference for on-demand: ${e.message}",
-                                e
-                        )
-                        // Continue without motion state if inference fails
-                    }
-                }
-            }
-
-            return@runBlocking metrics
-        }
-    }
 
     /**
      * Called when the app goes to background. Starts a timer to auto-end the session after 1 minute

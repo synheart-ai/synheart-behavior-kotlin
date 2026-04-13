@@ -480,7 +480,7 @@ internal class GestureCollector(private var config: BehaviorConfig, private val 
     private fun emitTapEvent(tapDurationMs: Int, longPress: Boolean) {
         tapTimestamps.add(System.currentTimeMillis())
         while (tapTimestamps.size > 50) {
-            tapTimestamps.removeFirst()
+            tapTimestamps.removeAt(0)
         }
 
         android.util.Log.d(
