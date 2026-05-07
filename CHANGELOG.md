@@ -45,12 +45,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### BREAKING CHANGES
 
-- **Flux is now required**: The SDK now requires `synheart-flux` (Rust library) for all behavioral and typing metric calculations. The SDK will fail to initialize if Flux libraries are not available.
+- **Flux is now required**: The SDK now requires `synheart-flux` for all behavioral and typing metric calculations. The SDK will fail to initialize if Flux libraries are not available.
 - **Removed native Kotlin calculations**: All native Kotlin calculation functions have been removed (~500+ lines). All metrics are now computed exclusively by `synheart-flux`.
 
 ### Added
 
-- **JNI Bridge**: Added C++ JNI bridge (`libflux_jni_bridge.so`) for calling Rust functions from Kotlin
+- **JNI Bridge**: Added C++ JNI bridge (`libflux_jni_bridge.so`) for calling native Flux functions from Kotlin
 - **CMake Build Configuration**: Added CMake support for building the JNI bridge library
 - **Flux Integration**: Complete integration with `synheart-flux` for HSI-compliant metric computation
 - **Detailed Typing Metrics**: Enhanced typing event conversion to include all metrics required by Flux (`typing_tap_count`, `mean_inter_tap_interval_ms`, `typing_burstiness`, etc.)
