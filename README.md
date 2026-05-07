@@ -201,16 +201,23 @@ lifecycleScope.launch {
 
 ## Event Types
 
-The SDK collects six types of behavioral events:
+`BehaviorEventType` has **eight canonical values**:
+`SCROLL, TAP, SWIPE, APP_SWITCH, NOTIFICATION, CALL, TYPING,
+CLIPBOARD`.
 
-- **Scroll**: Velocity, acceleration, direction, direction reversals
-- **Tap**: Duration, long-press detection
-- **Swipe**: Direction, distance, velocity, acceleration
-- **Notification**: Received, opened, ignored (requires permission)
-- **Call**: Answered, ignored, dismissed (requires permission)
-- **Typing**: Comprehensive typing session metrics including speed, cadence, burstiness, deep typing detection, and (from Flux) clipboard activity rate and correction rate
+- **SCROLL**: Velocity, acceleration, direction, direction reversals
+- **TAP**: Duration, long-press detection
+- **SWIPE**: Direction, distance, velocity, acceleration
+- **APP_SWITCH**: Foreground/background transitions, feeds task-switch metrics
+- **NOTIFICATION**: Received, opened, ignored (requires permission)
+- **CALL**: Answered, ignored, dismissed (requires permission)
+- **TYPING**: Comprehensive typing session metrics — speed, cadence, burstiness, deep typing detection, clipboard activity rate, and correction rate
+- **CLIPBOARD**: Copy / paste / cut event counts (no content)
 
-**Note**: App switch events (`APP_SWITCH`) are tracked internally and sent to Flux for task switch calculations, but are not displayed as one of the six event types in event streams or UI. App switch count is available in session summaries via `activitySummary.appSwitchCount`.
+**Note**: `APP_SWITCH` events are tracked internally and sent to the
+native Flux binary for task-switch calculations; they aren't shown
+as a top-level row in the example app's UI. App switch count is
+available in session summaries via `activitySummary.appSwitchCount`.
 
 Each event includes:
 
@@ -697,10 +704,6 @@ Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for gui
 ## License
 
 Apache 2.0 License - see [LICENSE](LICENSE) file for details.
-
-## Author
-
-Israel Goytom
 
 ## Links
 
