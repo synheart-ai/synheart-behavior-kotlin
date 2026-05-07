@@ -7,18 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.4.2] - 2026-05-06
+## [0.4.2] - 2026-05-07
 
-Open-source launch release. Public API and documentation are scrubbed
-of internal Flux integration references; behavioral signal collection
-matches the v0.4.1 capability set.
+Open-source launch release.
+
+The SDK is a pure behavioral signal collector. Higher-level behavioral
+inference (HSI fusion, focus / distraction modeling, rolling baselines)
+lives in the Synheart Core SDK, which consumes the events this package
+emits. This SDK has no native runtime dependency.
 
 ### Public surface
 The SDK collects privacy-preserving behavioral signals (taps, scrolls,
 swipes, app switches, idle gaps, typing session counts) on Android. No
-text, content, or PII is captured. Behavioral and typing metrics are
-surfaced through `BehaviorSessionSummary` (`behavioralMetrics`,
-`typingSessionSummary`, `motionState`).
+text, content, or PII is captured. Per-session aggregates are exposed
+on `BehaviorSessionSummary` and real-time stats on `BehaviorStats`.
 
 - `SynheartBehavior`, `BehaviorConfig`, `BehaviorEvent`,
   `BehaviorEventType`, `BehaviorSession`, `BehaviorSessionSummary`,
@@ -28,19 +30,16 @@ surfaced through `BehaviorSessionSummary` (`behavioralMetrics`,
 - Session-tracking API with summaries; manual stats polling.
 - On-demand metrics for ended sessions:
   `calculateMetricsForTimeRange()`.
-- Optional motion classification (LAYING / MOVING / SITTING / STANDING)
-  via ONNX Runtime when `enableMotionLite` is on.
+- Optional on-device motion classification (LAYING / MOVING / SITTING /
+  STANDING) via ONNX Runtime when `enableMotionLite` is on.
 
 ### Changed
 - `MotionFeatureExtractor`, `MotionSignalCollector`, `WindowType`,
-  `Triple3D`, and `GravityResult` are now `internal` — they were
-  implementation detail of motion inference and never intended as
-  public API.
+  `Triple3D`, and `GravityResult` are now `internal` — implementation
+  detail of motion inference, not public API.
 - README rewritten to mirror the Flutter SDK's structure (source-
   available banner, full Privacy & Compliance breakdown, Architecture
   diagram, Troubleshooting section, "Not a Medical Device" notice).
-- CHANGELOG entries below this release retain the internal-development
-  history for reference.
 
 ### Added
 - `CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md`,
