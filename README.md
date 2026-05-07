@@ -5,6 +5,11 @@
 [![Platform](https://img.shields.io/badge/platform-Android%20API%2021%2B-brightgreen)](https://developer.android.com)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
+> **Source-available.** This repository is open for reading, auditing, and
+> filing issues. We do **not** accept pull requests — see
+> [CONTRIBUTING.md](CONTRIBUTING.md) for the rationale and how to contribute
+> via issues. Security reports go through [SECURITY.md](SECURITY.md).
+
 A privacy-preserving mobile SDK that collects digital behavioral signals from smartphones. These timing-based signals represent biobehavioral markers correlated with cognitive and emotional states, especially focus, stress, engagement, and fatigue.
 
 ## Features
