@@ -3,15 +3,15 @@ package ai.synheart.behavior
 import kotlin.math.*
 
 // Type aliases for nested Triple structure
-typealias Triple3D = Triple<List<Double>, List<Double>, List<Double>>
+internal typealias Triple3D = Triple<List<Double>, List<Double>, List<Double>>
 
-typealias GravityResult = Pair<Triple3D, Triple3D>
+internal typealias GravityResult = Pair<Triple3D, Triple3D>
 
 /**
  * Extracts 561 ML features from raw accelerometer and gyroscope data. Based on HAR (Human Activity
  * Recognition) feature set.
  */
-class MotionFeatureExtractor {
+internal class MotionFeatureExtractor {
 
     /**
      * Extract all 561 features from raw sensor data in a 5-second window.

@@ -3,7 +3,7 @@ package ai.synheart.behavior
 /**
  * Window type for behavior feature aggregation.
  */
-enum class WindowType {
+internal enum class WindowType {
     /** 30-second rolling window. */
     SHORT,
 

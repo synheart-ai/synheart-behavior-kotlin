@@ -7,9 +7,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Fixed (docs) — 2026-05-05
-- README "six types of behavioral events" wording aligned with the real `BehaviorEventType` enum (8 values including `CLIPBOARD` and `APP_SWITCH`).
-- README example `behaviorVersion = "0.4.0"` → current `0.4.1`.
+## [0.4.2] - 2026-05-06
+
+Open-source launch release. Public API and documentation are scrubbed
+of internal Flux integration references; behavioral signal collection
+matches the v0.4.1 capability set.
+
+### Public surface
+The SDK collects privacy-preserving behavioral signals (taps, scrolls,
+swipes, app switches, idle gaps, typing session counts) on Android. No
+text, content, or PII is captured. Behavioral and typing metrics are
+surfaced through `BehaviorSessionSummary` (`behavioralMetrics`,
+`typingSessionSummary`, `motionState`).
+
+- `SynheartBehavior`, `BehaviorConfig`, `BehaviorEvent`,
+  `BehaviorEventType`, `BehaviorSession`, `BehaviorSessionSummary`,
+  `BehavioralMetrics`, `TypingSessionSummary`, `NotificationSummary`,
+  `MotionState`, `BehaviorStats`, `SynheartNotificationListenerService`.
+- `Flow<BehaviorEvent>` and callback-based event handlers.
+- Session-tracking API with summaries; manual stats polling.
+- On-demand metrics for ended sessions:
+  `calculateMetricsForTimeRange()`.
+- Optional motion classification (LAYING / MOVING / SITTING / STANDING)
+  via ONNX Runtime when `enableMotionLite` is on.
+
+### Changed
+- `MotionFeatureExtractor`, `MotionSignalCollector`, `WindowType`,
+  `Triple3D`, and `GravityResult` are now `internal` — they were
+  implementation detail of motion inference and never intended as
+  public API.
+- README rewritten to mirror the Flutter SDK's structure (source-
+  available banner, full Privacy & Compliance breakdown, Architecture
+  diagram, Troubleshooting section, "Not a Medical Device" notice).
+- CHANGELOG entries below this release retain the internal-development
+  history for reference.
+
+### Added
+- `CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md`,
+  `.github/CODEOWNERS`, `.github/ISSUE_TEMPLATE/`,
+  `.github/pull_request_template.md`,
+  `.github/workflows/close-external-prs.yml`, `.github/dependabot.yml`.
+- `example/GUIDE.md` walkthrough mirroring the Flutter example guide.
+
+### Platform support
+- Android API 21+ (Android 5.0+)
+- Kotlin 2.0+, JDK 17, Gradle 8.0+
 
 ## [0.4.1] - 2026-02-18
 
@@ -40,6 +82,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - README: Version 0.4.0, Flux v0.3.0+ recommendation, typing summary example with clipboard/correction rates, new troubleshooting entry for rates stuck at 0.
 - SYNHEART_FLUX_INTEGRATION: Flux v0.3.0 release link, "Typing Summary from Flux" section, clipboard/correction formulas and troubleshooting.
+
+## [0.3.1] - 2026-02-04
+
+### Changed
+
+- **Publishing coordinates**: Publish as `ai.synheart:synheart-behavior` (previously `ai.synheart:behavior`)
+- **License metadata**: Updated Maven Central POM license to Apache-2.0
 
 ## [0.3.0] - 2025-01-21
 
@@ -79,28 +128,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `computeTypingSessionSummaryObject()`
 - **Unused Imports**: Removed `kotlin.math.exp` and `kotlin.math.sqrt` imports
 
-### Migration Guide
-
-If you're upgrading from version 0.2.0:
-
-1. **Install Flux Libraries**: Download and install `synheart-flux-android-jniLibs.tar.gz` from [synheart-flux releases](https://github.com/synheart-ai/synheart-flux/releases)
-2. **Update Build Configuration**: Ensure your `build.gradle` includes CMake configuration (already included in the SDK)
-3. **Remove Fallback Code**: Remove any code that checks `isFluxAvailable` and provides fallback behavior - Flux is now required
-4. **Update API Calls**: `FluxBridge.isAvailable` is now a function: `FluxBridge.isAvailable()`
-
-### Documentation
-
-- Updated `SYNHEART_FLUX_INTEGRATION.md` to reflect Flux as required
-- Updated `README.md` installation instructions
-- Added migration notes
-
-## [0.3.1] - 2026-02-04
-
-### Changed
-
-- **Publishing coordinates**: Publish as `ai.synheart:synheart-behavior` (previously `ai.synheart:behavior`)
-- **License metadata**: Updated Maven Central POM license to Apache-2.0
-
 ## [0.2.0] - 2025-01-09
 
 ### Added
@@ -113,7 +140,6 @@ If you're upgrading from version 0.2.0:
 - **Manual Event Sending**: `sendEvent()` method for manually sending behavioral events
 - **Session Data Persistence**: Ended sessions are stored to allow on-demand metric calculation for historical data
 - **Motion Data Collection**: Raw accelerometer and gyroscope data collection with 561-feature ML extraction
-- **BehaviorEditText**: Custom EditText widget for typing event tracking (example app)
 - **Automatic Session Ending**: Sessions are automatically ended after 1 minute when the app stays in the background
 
 ### Changed
@@ -133,52 +159,10 @@ If you're upgrading from version 0.2.0:
 - **Scroll Detection**: Fixed scroll delta calculation for ScrollView and NestedScrollView
 - **Feature Ordering**: Ensured motion features are ordered exactly as specified in `features.txt` (no sorting fallback)
 
-### Platform Support
-
-- **Android**: API 21+ (Android 5.0+)
-- **Kotlin**: 1.9.0+
-- **Gradle**: 8.0+
-- **ONNX Runtime**: 1.18.0 (for motion state inference)
-
-### Notes
-
-- Motion state inference requires `enableMotionLite = true` in configuration
-- Typing events are separate from tap events and include detailed timing metrics
-- On-demand metrics calculation validates time ranges and shows error dialogs for invalid ranges
-- Motion state inference runs locally using ONNX Runtime; no data sent to external servers
-
-## [1.0.0] - Unreleased
-
-### Added
-
-- Initial release of Synheart Behavioral SDK for Android
-- Real-time event streaming for scroll, tap, swipe, notification, and call interactions
-- Session tracking with comprehensive behavioral summaries
-- Privacy-preserving behavioral signal collection (timing-based only, no PII)
-- Gesture detection on Android views via `attachToView()`
-- App lifecycle tracking (app switches, foreground duration, idle gaps)
-- Session stability and fragmentation metrics
-- Notification and call event tracking (optional, requires permissions)
-- Auto-end session after 1 minute in background (example app)
-
-### Features
-
-- **Input Signals**: Scroll, tap, and swipe gesture tracking
-- **Attention Signals**: App switching, idle gaps, session stability
-- **Event Types**: SCROLL, TAP, SWIPE, NOTIFICATION, CALL, APP_SWITCH
-- **Session Management**: Start/end sessions with detailed summaries
-- **Real-Time Statistics**: Get current behavioral stats without ending session
-- **Privacy-First**: No text content, keystroke content, or PII collected
-
-### Platform Support
-
-- **Android**: API 21+ (Android 5.0+)
-- **Kotlin**: 1.9.0+
-- **Gradle**: 8.0+
-
-### Notes
-
-- Basic functionality (scroll, tap, swipe) requires no permissions
-- Notification tracking requires Notification Access to be enabled in system settings
-- Call tracking requires `READ_PHONE_STATE` permission
-- Text field interactions are captured as tap events (typing/keystroke tracking is not implemented)
+[Unreleased]: https://github.com/synheart-ai/synheart-behavior-kotlin/compare/v0.4.2...HEAD
+[0.4.2]: https://github.com/synheart-ai/synheart-behavior-kotlin/releases/tag/v0.4.2
+[0.4.1]: https://github.com/synheart-ai/synheart-behavior-kotlin/releases/tag/v0.4.1
+[0.4.0]: https://github.com/synheart-ai/synheart-behavior-kotlin/releases/tag/v0.4.0
+[0.3.1]: https://github.com/synheart-ai/synheart-behavior-kotlin/releases/tag/v0.3.1
+[0.3.0]: https://github.com/synheart-ai/synheart-behavior-kotlin/releases/tag/v0.3.0
+[0.2.0]: https://github.com/synheart-ai/synheart-behavior-kotlin/releases/tag/v0.2.0
