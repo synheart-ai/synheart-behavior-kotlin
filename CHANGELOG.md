@@ -103,7 +103,6 @@ If you're upgrading from version 0.2.0:
 
 - **Typing Event Tracking**: Comprehensive typing session metrics including speed, cadence, burstiness, and deep typing detection
 - **Motion State Inference**: ML-based activity recognition (LAYING, MOVING, SITTING, STANDING) using ONNX Runtime
-- **On-Demand Metrics Calculation**: Calculate behavioral metrics for custom time ranges within sessions via `calculateMetricsForTimeRange()`
 - **Kotlin Flow Support**: Reactive event streaming using Kotlin Flow in addition to callback handlers
 - **Session Spacing**: Automatic calculation of time elapsed between session end and next session start
 - **Manual Event Sending**: `sendEvent()` method for manually sending behavioral events
@@ -124,7 +123,6 @@ If you're upgrading from version 0.2.0:
 
 - **Tap Count Inflation**: Fixed internal metrics (idle gaps, stability, fragmentation) being incorrectly counted as tap events
 - **Notification Tracking**: Fixed duplicate notification events when notifications were opened or ignored
-- **Session Not Found**: Fixed `calculateMetricsForTimeRange()` failing for ended sessions
 - **Keyboard Dismissal**: Fixed keyboard not dismissing when tapping outside EditText fields
 - **Scroll Detection**: Fixed scroll delta calculation for ScrollView and NestedScrollView
 - **Feature Ordering**: Ensured motion features are ordered exactly as specified in `features.txt` (no sorting fallback)

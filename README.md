@@ -140,8 +140,7 @@ class MainActivity : AppCompatActivity() {
 2. **Attach to Views** - Use `attachToView()` to enable gesture tracking on views
 3. **Listen to Events** - Set an event handler or use Flow to receive real-time behavioral signals
 4. **Track Sessions** - Start and end sessions to get behavioral summaries
-5. **Calculate On-Demand Metrics** - Use `calculateMetricsForTimeRange()` for custom time ranges
-6. **Clean Up** - Call `dispose()` when done to free resources
+5. **Clean Up** - Call `dispose()` when done to free resources
 
 ## Real-Time Event Tracking
 
@@ -368,42 +367,11 @@ summary.motionState?.let { motion ->
 }
 ```
 
-### On-Demand Metrics Calculation
-
-Calculate behavioral metrics for a custom time range within a session:
-
-```kotlin
-// Calculate metrics for a specific time range
-val metrics = behavior.calculateMetricsForTimeRange(
-    startTimestampSeconds = 1767688063,  // Unix timestamp in seconds
-    endTimestampSeconds = 1767688130,     // Unix timestamp in seconds
-    sessionId = "SESS-1767688063415"      // Optional: session ID (uses current if not provided)
-)
-
-// Access the calculated metrics
-android.util.Log.d("Behavior", "Total events: ${(metrics["activity_summary"] as Map<*, *>)["total_events"]}")
-android.util.Log.d("Behavior", "App switches: ${(metrics["activity_summary"] as Map<*, *>)["app_switch_count"]}")
-val behavioralMetrics = metrics["behavioral_metrics"] as Map<*, *>
-android.util.Log.d("Behavior", "Interaction intensity: ${behavioralMetrics["interaction_intensity"]}")
-android.util.Log.d("Behavior", "Distraction score: ${behavioralMetrics["behavioral_distraction_score"]}")
-
-// Motion state (if motion data is available)
-(metrics["motion_state"] as? Map<*, *>)?.let { motionState ->
-    android.util.Log.d("Behavior", "Motion state: ${motionState["major_state"]}")
-    android.util.Log.d("Behavior", "Confidence: ${motionState["confidence"]}")
-}
-```
-
-**Note**: The time range must be within the session's start and end times. The SDK validates this automatically and will throw an error if the range is out of bounds.
-
 ### Motion State Inference
 
 When `enableMotionLite` is enabled, the SDK uses machine learning to predict user activity states from motion sensor data. The model classifies activity into four states: **LAYING**, **MOVING**, **SITTING**, and **STANDING**.
 
-Motion state inference is automatically performed:
-
-- When ending a session (if motion data is available)
-- When calling `calculateMetricsForTimeRange()` (if motion data is available for that time range)
+Motion state inference is automatically performed when ending a session (if motion data is available).
 
 ```kotlin
 // Motion state is included in session summaries
@@ -414,15 +382,6 @@ summary.motionState?.let { motion ->
     android.util.Log.d("Behavior", "Major State Percentage: ${motion.majorStatePct * 100}%")
     android.util.Log.d("Behavior", "Confidence: ${motion.confidence}")
     android.util.Log.d("Behavior", "ML Model: ${motion.mlModel}")
-}
-
-// Motion state is also available in on-demand metrics
-val metrics = behavior.calculateMetricsForTimeRange(
-    startTimestampSeconds = startSeconds,
-    endTimestampSeconds = endSeconds
-)
-(metrics["motion_state"] as? Map<*, *>)?.let { motionState ->
-    android.util.Log.d("Behavior", "Motion State: ${motionState["major_state"]}")
 }
 ```
 
@@ -667,13 +626,6 @@ class SynheartBehavior {
 
     // View tracking
     fun attachToView(view: View)
-
-    // On-demand metrics
-    fun calculateMetricsForTimeRange(
-        startTimestampSeconds: Int,
-        endTimestampSeconds: Int,
-        sessionId: String? = null
-    ): Map<String, Any?>
 
     // Configuration
     fun updateConfig(newConfig: BehaviorConfig)
