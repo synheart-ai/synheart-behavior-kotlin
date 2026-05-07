@@ -231,7 +231,7 @@ data class TypingMetrics(
 
 /**
  * Typing session summary. Contains individual per-typing-session metrics (per-event data)
- * and count. Aggregate fields (averages, ratios) are computed by session-runtime, not locally.
+ * and count. Aggregate fields (averages, ratios) are computed by the runtime, not locally.
  * They default to 0.0 for backwards compatibility.
  */
 data class TypingSessionSummary(
@@ -398,7 +398,7 @@ data class BehaviorSessionSummary(
         /** Activity summary. */
         val activitySummary: ActivitySummary,
 
-        /** Behavioral metrics. Null when computed by session-runtime instead of locally. */
+        /** Behavioral metrics. Null when computed by the runtime instead of locally. */
         val behavioralMetrics: BehavioralMetrics? = null,
 
         /** Notification summary. */

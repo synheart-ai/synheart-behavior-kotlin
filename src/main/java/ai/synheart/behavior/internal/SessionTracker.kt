@@ -164,7 +164,7 @@ internal class SessionTracker(
         val callIgnored = callEvents.count { (it.metrics["action"] as? String) == "ignored" }
 
         // Window-level behavioral metrics (distraction_score, burstiness, focus_hint, etc.)
-        // are computed by session-runtime from raw events — not duplicated here.
+        // are computed downstream from raw events — not duplicated here.
 
         // Device Context
         val deviceContext =

@@ -144,7 +144,7 @@ class SessionTrackerTest {
         val summary = tracker.getSessionSummary(emptyMap(), emptyMap(), emptyMap())
 
         // Behavioral metrics (distraction_score, burstiness, etc.) are computed
-        // by session-runtime, not the behavior SDK
+        // downstream, not in the behavior SDK
         assertNull(summary.behavioralMetrics)
     }
 

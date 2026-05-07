@@ -746,7 +746,7 @@ class SessionResultsActivity : AppCompatActivity() {
         }
 
         // calculateMetricsForTimeRange removed — behavioral metrics are now
-        // computed by session-runtime, not the behavior SDK.
+        // computed downstream, not by the behavior SDK.
         AlertDialog.Builder(this)
                 .setTitle("Not Available")
                 .setMessage("Time-range metrics are now computed by the Synheart runtime pipeline, not the behavior SDK.")
