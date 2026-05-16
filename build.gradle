@@ -1,0 +1,215 @@
+plugins {
+    id 'com.android.library'
+    id 'maven-publish'
+    id 'signing'
+    id 'io.github.gradle-nexus.publish-plugin' version '2.0.0'
+}
+
+import java.util.Base64
+
+def sdkVersion = "0.4.1"
+
+group = "ai.synheart"
+version = sdkVersion
+
+android {
+    namespace 'ai.synheart.behavior'
+    compileSdk 34
+
+    defaultConfig {
+        minSdk 21
+        versionCode 5
+        versionName sdkVersion
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles "consumer-rules.pro"
+    }
+
+    testOptions {
+        unitTests.returnDefaultValues = true
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    lint {
+        // CI already runs `lint` separately; don't fail `build`/publishing on existing lint issues.
+        abortOnError false
+    }
+
+    compileOptions {
+        coreLibraryDesugaringEnabled true
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    publishing {
+        singleVariant("release") {
+            withSourcesJar()
+            withJavadocJar()
+        }
+    }
+}
+
+dependencies {
+    implementation 'androidx.core:core-ktx:1.12.0'
+    implementation 'androidx.lifecycle:lifecycle-process:2.7.0'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3'
+    
+    // ONNX Runtime for motion state inference
+    implementation 'com.microsoft.onnxruntime:onnxruntime-android:1.18.0'
+
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.jetbrains.kotlin:kotlin-test:2.3.0'
+    testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+    testImplementation 'org.mockito:mockito-core:5.14.2'
+    testImplementation 'org.mockito.kotlin:mockito-kotlin:5.4.0'
+    testImplementation 'io.mockk:mockk:1.13.8'
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'
+    implementation 'androidx.recyclerview:recyclerview:1.3.2'
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+                from components.release
+                
+                groupId = 'ai.synheart'
+                artifactId = 'synheart-behavior'
+                version = sdkVersion
+
+                pom {
+                    name = 'Synheart Behavior Android'
+                    description = 'Privacy-preserving behavioral signal collection SDK for Android applications'
+                    url = 'https://github.com/synheart-ai/synheart-behavior-kotlin'
+                    
+                    licenses {
+                        license {
+                            name = 'Apache-2.0'
+                            url = 'https://www.apache.org/licenses/LICENSE-2.0.txt'
+                        }
+                    }
+                    
+                    developers {
+                      
+                        developer {
+                            id = 'yoseph-gebeyehu'
+                            name = 'Yoseph Gebeyehu'
+                            email = 'yoseph@synheart.ai'
+                        }
+                          developer {
+                            id = 'israel-goytom'
+                            name = 'Israel Goytom'
+                            email = 'israel@synheart.ai'
+                        }
+                        developer {
+                            id = 'synheart-ai'
+                            name = 'Synheart AI Research Team'
+                            email = 'research@synheart.ai'
+                        }
+                    }
+                    
+                    scm {
+                        connection = 'scm:git:git://github.com/synheart-ai/synheart-behavior-kotlin.git'
+                        developerConnection = 'scm:git:ssh://github.com/synheart-ai/synheart-behavior-kotlin.git'
+                        url = 'https://github.com/synheart-ai/synheart-behavior-kotlin'
+                    }
+                }
+            }
+        }
+    }
+    
+    signing {
+        // Support both `GPG_*` and `SIGNING_*` naming (CI commonly uses ORG_GRADLE_PROJECT_SIGNING_*).
+        def signingKey = (
+            project.findProperty('GPG_PRIVATE_KEY')
+                ?: project.findProperty('SIGNING_KEY')
+                ?: System.getenv('GPG_PRIVATE_KEY')
+                ?: System.getenv('SIGNING_KEY')
+                ?: ''
+        )
+        def signingKeyBase64 = (
+            project.findProperty('GPG_PRIVATE_KEY_BASE64')
+                ?: project.findProperty('SIGNING_KEY_BASE64')
+                ?: System.getenv('GPG_PRIVATE_KEY_BASE64')
+                ?: System.getenv('SIGNING_KEY_BASE64')
+                ?: ''
+        )
+        def signingPassword = (
+            project.findProperty('GPG_PASSPHRASE')
+                ?: project.findProperty('SIGNING_PASSWORD')
+                ?: System.getenv('GPG_PASSPHRASE')
+                ?: System.getenv('SIGNING_PASSWORD')
+                ?: ''
+        )
+
+        // Prefer base64 when provided (robust for CI / dotenv / shells).
+        if (signingKeyBase64) {
+            def normalized = signingKeyBase64.toString().replaceAll('\\s+', '')
+            signingKey = new String(Base64.getMimeDecoder().decode(normalized), 'UTF-8')
+        }
+
+        // Support `.env`-style single-line values with escaped newlines.
+        signingKey = (signingKey ?: '')
+            .toString()
+            .replace('\r\n', '\n')
+            .replace('\r', '\n')
+            .replace('\\n', '\n')
+            .trim()
+        signingPassword = (signingPassword ?: '').toString()
+
+        def hasSigning = signingKey && signingPassword
+        
+        if (hasSigning) {
+            useInMemoryPgpKeys(signingKey, signingPassword)
+        }
+
+        // Don't require signing for local `publishToMavenLocal` tests.
+        // Require signing when publishing to Sonatype (Maven Central requirement).
+        required {
+            hasSigning && gradle.taskGraph.allTasks.any { t ->
+                def n = t.name.toLowerCase()
+                n.contains('sonatype') || n.contains('close') || n.contains('release')
+            }
+        }
+        sign publishing.publications.release
+    }
+}
+
+nexusPublishing {
+    repositories {
+        sonatype {
+            // Sonatype Central (OSSRH legacy is EOL).
+            // See: https://central.sonatype.org/publish/publish-portal-ossrh-staging-api/#configuration
+            nexusUrl.set(uri('https://ossrh-staging-api.central.sonatype.com/service/local/'))
+            snapshotRepositoryUrl.set(uri('https://central.sonatype.com/repository/maven-snapshots/'))
+
+            // Prefer Sonatype Central portal token credentials.
+            // Also supports legacy OSSRH env var names for convenience.
+            username.set(
+                project.findProperty('sonatypeUsername')
+                    ?: project.findProperty('SONATYPE_USERNAME')
+                    ?: project.findProperty('OSSRH_USERNAME')
+                    ?: System.getenv('SONATYPE_USERNAME')
+                    ?: System.getenv('OSSRH_USERNAME')
+                    ?: ''
+            )
+            password.set(
+                project.findProperty('sonatypePassword')
+                    ?: project.findProperty('SONATYPE_PASSWORD')
+                    ?: project.findProperty('OSSRH_PASSWORD')
+                    ?: System.getenv('SONATYPE_PASSWORD')
+                    ?: System.getenv('OSSRH_PASSWORD')
+                    ?: ''
+            )
+        }
+    }
+}

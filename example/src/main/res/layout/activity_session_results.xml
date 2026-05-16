@@ -1,0 +1,648 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Session Information Card -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="2dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Session Information"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="12dp" />
+
+                <LinearLayout android:id="@+id/sessionIdRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/sessionIdLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/sessionIdValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/startTimeRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/startTimeLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/startTimeValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/endTimeRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/endTimeLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/endTimeValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/durationRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/durationLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/durationValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/microSessionRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/microSessionLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/microSessionValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/osRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/osLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/osValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/appIdRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/appIdLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/appIdValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/appNameRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/appNameLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/appNameValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/sessionSpacingRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/sessionSpacingLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/sessionSpacingValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/totalEventsRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="16dp">
+                    <TextView android:id="@+id/totalEventsLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/totalEventsValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#E0E0E0"
+                    android:layout_marginVertical="12dp" />
+
+                <!-- Time Range Selection Section -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Time Range Selection"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="12dp" />
+
+                <Button
+                    android:id="@+id/pickStartTimeBtn"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Pick Start Time"
+                    android:layout_marginBottom="8dp"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+
+                <Button
+                    android:id="@+id/pickEndTimeBtn"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Pick End Time"
+                    android:layout_marginBottom="12dp"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+
+                <Button
+                    android:id="@+id/calculateMetricsBtn"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Calculate Metrics"
+                    android:enabled="false"
+                    android:padding="12dp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Motion Data Debug Card (conditional) -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/motionDataDebugCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:visibility="gone"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="2dp"
+            app:cardBackgroundColor="#FFF3E0">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Motion Data Debug"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="#E65100"
+                    android:layout_marginBottom="8dp" />
+
+                <LinearLayout android:id="@+id/motionDataAvailableRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/motionDataAvailableLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/motionDataAvailableValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/motionDataCountRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/motionDataCountLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/motionDataCountValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/motionStateAvailableRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                    <TextView android:id="@+id/motionStateAvailableLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/motionStateAvailableValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Motion State Card (conditional) -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/motionStateCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:visibility="gone"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="2dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Motion State"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="12dp" />
+
+                <LinearLayout android:id="@+id/motionMajorStateRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/motionMajorStateLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/motionMajorStateValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/motionMajorStatePctRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/motionMajorStatePctLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/motionMajorStatePctValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/motionModelRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/motionModelLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/motionModelValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/motionConfidenceRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="12dp">
+                    <TextView android:id="@+id/motionConfidenceLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/motionConfidenceValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#E0E0E0"
+                    android:layout_marginBottom="8dp" />
+
+                <TextView
+                    android:id="@+id/motionStateArrayLabel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="State Array"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="8dp" />
+
+                <TextView
+                    android:id="@+id/motionStateArrayValue"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="monospace"
+                    android:textSize="12sp"
+                    android:background="#F5F5F5"
+                    android:padding="8dp"
+                    android:layout_marginBottom="8dp" />
+
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/motionStateChipGroup"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Device Context Card -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="2dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Device Context"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="12dp" />
+
+                <LinearLayout android:id="@+id/screenBrightnessRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/screenBrightnessLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/screenBrightnessValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/startOrientationRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/startOrientationLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/startOrientationValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/orientationChangesRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                    <TextView android:id="@+id/orientationChangesLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/orientationChangesValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Activity Summary Card -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="2dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Activity Summary"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="12dp" />
+
+                <LinearLayout android:id="@+id/activityTotalEventsRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/activityTotalEventsLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/activityTotalEventsValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/activityAppSwitchRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                    <TextView android:id="@+id/activityAppSwitchLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/activityAppSwitchValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Behavior Metrics Card -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="2dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Behavior Metrics"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="12dp" />
+
+                <LinearLayout android:id="@+id/interactionIntensityRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/interactionIntensityLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/interactionIntensityValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/taskSwitchRateRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/taskSwitchRateLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/taskSwitchRateValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/taskSwitchCostRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/taskSwitchCostLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/taskSwitchCostValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/idleTimeRatioRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/idleTimeRatioLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/idleTimeRatioValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/activeTimeRatioRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/activeTimeRatioLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/activeTimeRatioValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/notificationLoadRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/notificationLoadLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/notificationLoadValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/burstinessRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/burstinessLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/burstinessValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/distractionScoreRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/distractionScoreLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/distractionScoreValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/focusHintRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/focusHintLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/focusHintValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/fragmentedIdleRatioRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/fragmentedIdleRatioLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/fragmentedIdleRatioValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/scrollJitterRateRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/scrollJitterRateLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/scrollJitterRateValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/deepFocusBlocksRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/deepFocusBlocksLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/deepFocusBlocksValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/deepFocusBlocksDetails"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginTop="8dp"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Deep Focus Block Details:"
+                        android:textStyle="bold"
+                        android:textSize="14sp"
+                        android:layout_marginBottom="4dp" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Notification Summary Card -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="2dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Notification Summary"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="12dp" />
+
+                <LinearLayout android:id="@+id/notificationCountRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/notificationCountLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/notificationCountValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/notificationIgnoredRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/notificationIgnoredLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/notificationIgnoredValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/notificationIgnoreRateRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/notificationIgnoreRateLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/notificationIgnoreRateValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/notificationClusteringRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/notificationClusteringLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/notificationClusteringValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/callCountRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/callCountLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/callCountValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/callIgnoredRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                    <TextView android:id="@+id/callIgnoredLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/callIgnoredValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Typing Session Summary Card (conditional) -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/typingSessionSummaryCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:visibility="gone"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="2dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Typing Session Summary"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="12dp" />
+
+                <LinearLayout android:id="@+id/typingSessionCountRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/typingSessionCountLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/typingSessionCountValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/avgKeystrokesPerSessionRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/avgKeystrokesPerSessionLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/avgKeystrokesPerSessionValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/avgTypingSessionDurationRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/avgTypingSessionDurationLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/avgTypingSessionDurationValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/avgTypingSpeedRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/avgTypingSpeedLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/avgTypingSpeedValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/avgTypingGapRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/avgTypingGapLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/avgTypingGapValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/avgInterTapIntervalRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/avgInterTapIntervalLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/avgInterTapIntervalValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/typingCadenceStabilityRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/typingCadenceStabilityLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/typingCadenceStabilityValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/burstinessOfTypingRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/burstinessOfTypingLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/burstinessOfTypingValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/totalTypingDurationRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/totalTypingDurationLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/totalTypingDurationValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/activeTypingRatioRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/activeTypingRatioLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/activeTypingRatioValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/typingContributionToIntensityRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/typingContributionToIntensityLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/typingContributionToIntensityValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/deepTypingBlocksRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/deepTypingBlocksLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/deepTypingBlocksValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/typingFragmentationRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/typingFragmentationLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/typingFragmentationValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/clipboardActivityRateRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/clipboardActivityRateLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/clipboardActivityRateValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/correctionRateRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="8dp">
+                    <TextView android:id="@+id/correctionRateLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/correctionRateValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <TextView android:id="@+id/individualTypingSessionsTitle" android:layout_width="match_parent" android:layout_height="wrap_content" android:textStyle="bold" android:textSize="14sp" android:visibility="gone" android:layout_marginTop="8dp" android:layout_marginBottom="4dp" />
+                <androidx.recyclerview.widget.RecyclerView android:id="@+id/individualTypingSessionsList" android:layout_width="match_parent" android:layout_height="wrap_content" android:nestedScrollingEnabled="false" android:visibility="gone" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- System State Card -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="2dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="System State"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="12dp" />
+
+                <LinearLayout android:id="@+id/internetStateRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/internetStateLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/internetStateValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/doNotDisturbRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                    <TextView android:id="@+id/doNotDisturbLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/doNotDisturbValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/chargingRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                    <TextView android:id="@+id/chargingLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textStyle="bold" />
+                    <TextView android:id="@+id/chargingValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Events Timeline Card -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="2dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:id="@+id/eventsTimelineTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/events_timeline"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="12dp" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/eventsRecyclerView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:nestedScrollingEnabled="false" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+    </LinearLayout>
+</ScrollView>
