@@ -248,61 +248,70 @@ class SessionResultsActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.activityAppSwitchValue)?.text =
                 summary.activitySummary.appSwitchCount.toString()
 
-        // Behavior Metrics
+        // Behavior Metrics — computed downstream from the event stream,
+        // not in the SDK. Display them only if a consumer has populated them.
         val metrics = summary.behavioralMetrics
-        findViewById<TextView>(R.id.interactionIntensityLabel)?.text = "Interaction Intensity"
-        findViewById<TextView>(R.id.interactionIntensityValue)?.text =
-                String.format("%.3f", metrics.interactionIntensity)
-        findViewById<TextView>(R.id.taskSwitchRateLabel)?.text = "Task Switch Rate"
-        findViewById<TextView>(R.id.taskSwitchRateValue)?.text =
-                String.format("%.3f", metrics.taskSwitchRate)
-        findViewById<TextView>(R.id.taskSwitchCostLabel)?.text = "Task Switch Cost"
-        findViewById<TextView>(R.id.taskSwitchCostValue)?.text =
-                formatMs(metrics.taskSwitchCost.toLong())
-        findViewById<TextView>(R.id.idleTimeRatioLabel)?.text = "Idle Time Ratio"
-        findViewById<TextView>(R.id.idleTimeRatioValue)?.text =
-                String.format("%.3f", metrics.idleTimeRatio)
-        findViewById<TextView>(R.id.activeTimeRatioLabel)?.text = "Active Time Ratio"
-        findViewById<TextView>(R.id.activeTimeRatioValue)?.text =
-                String.format("%.3f", metrics.activeTimeRatio)
-        findViewById<TextView>(R.id.notificationLoadLabel)?.text = "Notification Load"
-        findViewById<TextView>(R.id.notificationLoadValue)?.text =
-                String.format("%.3f", metrics.notificationLoad)
-        findViewById<TextView>(R.id.burstinessLabel)?.text = "Burstiness"
-        findViewById<TextView>(R.id.burstinessValue)?.text =
-                String.format("%.3f", metrics.burstiness)
-        findViewById<TextView>(R.id.distractionScoreLabel)?.text = "Distraction Score"
-        findViewById<TextView>(R.id.distractionScoreValue)?.text =
-                String.format("%.3f", metrics.behavioralDistractionScore)
-        findViewById<TextView>(R.id.focusHintLabel)?.text = "Focus Hint"
-        findViewById<TextView>(R.id.focusHintValue)?.text = String.format("%.3f", metrics.focusHint)
-        findViewById<TextView>(R.id.fragmentedIdleRatioLabel)?.text = "Fragmented Idle Ratio"
-        findViewById<TextView>(R.id.fragmentedIdleRatioValue)?.text =
-                String.format("%.3f", metrics.fragmentedIdleRatio)
-        findViewById<TextView>(R.id.scrollJitterRateLabel)?.text = "Scroll Jitter Rate"
-        findViewById<TextView>(R.id.scrollJitterRateValue)?.text =
-                String.format("%.3f", metrics.scrollJitterRate)
-        findViewById<TextView>(R.id.deepFocusBlocksLabel)?.text = "Deep Focus Blocks"
-        findViewById<TextView>(R.id.deepFocusBlocksValue)?.text =
-                metrics.deepFocusBlocks.size.toString()
+        if (metrics != null) {
+            findViewById<TextView>(R.id.interactionIntensityLabel)?.text = "Interaction Intensity"
+            findViewById<TextView>(R.id.interactionIntensityValue)?.text =
+                    String.format("%.3f", metrics.interactionIntensity)
+            findViewById<TextView>(R.id.taskSwitchRateLabel)?.text = "Task Switch Rate"
+            findViewById<TextView>(R.id.taskSwitchRateValue)?.text =
+                    String.format("%.3f", metrics.taskSwitchRate)
+            findViewById<TextView>(R.id.taskSwitchCostLabel)?.text = "Task Switch Cost"
+            findViewById<TextView>(R.id.taskSwitchCostValue)?.text =
+                    formatMs(metrics.taskSwitchCost.toLong())
+            findViewById<TextView>(R.id.idleTimeRatioLabel)?.text = "Idle Time Ratio"
+            findViewById<TextView>(R.id.idleTimeRatioValue)?.text =
+                    String.format("%.3f", metrics.idleTimeRatio)
+            findViewById<TextView>(R.id.activeTimeRatioLabel)?.text = "Active Time Ratio"
+            findViewById<TextView>(R.id.activeTimeRatioValue)?.text =
+                    String.format("%.3f", metrics.activeTimeRatio)
+            findViewById<TextView>(R.id.notificationLoadLabel)?.text = "Notification Load"
+            findViewById<TextView>(R.id.notificationLoadValue)?.text =
+                    String.format("%.3f", metrics.notificationLoad)
+            findViewById<TextView>(R.id.burstinessLabel)?.text = "Burstiness"
+            findViewById<TextView>(R.id.burstinessValue)?.text =
+                    String.format("%.3f", metrics.burstiness)
+            findViewById<TextView>(R.id.distractionScoreLabel)?.text = "Distraction Score"
+            findViewById<TextView>(R.id.distractionScoreValue)?.text =
+                    String.format("%.3f", metrics.behavioralDistractionScore)
+            findViewById<TextView>(R.id.focusHintLabel)?.text = "Focus Hint"
+            findViewById<TextView>(R.id.focusHintValue)?.text =
+                    String.format("%.3f", metrics.focusHint)
+            findViewById<TextView>(R.id.fragmentedIdleRatioLabel)?.text = "Fragmented Idle Ratio"
+            findViewById<TextView>(R.id.fragmentedIdleRatioValue)?.text =
+                    String.format("%.3f", metrics.fragmentedIdleRatio)
+            findViewById<TextView>(R.id.scrollJitterRateLabel)?.text = "Scroll Jitter Rate"
+            findViewById<TextView>(R.id.scrollJitterRateValue)?.text =
+                    String.format("%.3f", metrics.scrollJitterRate)
+            findViewById<TextView>(R.id.deepFocusBlocksLabel)?.text = "Deep Focus Blocks"
+            findViewById<TextView>(R.id.deepFocusBlocksValue)?.text =
+                    metrics.deepFocusBlocks.size.toString()
 
-        // Deep Focus Blocks Details
-        val deepFocusDetails = findViewById<LinearLayout>(R.id.deepFocusBlocksDetails)
-        if (metrics.deepFocusBlocks.isNotEmpty()) {
-            deepFocusDetails.visibility = View.VISIBLE
-            deepFocusDetails.removeAllViews()
-            metrics.deepFocusBlocks.forEachIndexed { index, block ->
-                val textView =
-                        TextView(this).apply {
-                            text =
-                                    "Block ${index + 1}: ${formatDateTime(block.startAt)} - ${formatDateTime(block.endAt)} (${formatMs(block.durationMs.toLong())})"
-                            textSize = 12f
-                            setPadding(32, 4, 0, 4)
-                        }
-                deepFocusDetails.addView(textView)
+            // Deep Focus Blocks Details
+            val deepFocusDetails = findViewById<LinearLayout>(R.id.deepFocusBlocksDetails)
+            if (metrics.deepFocusBlocks.isNotEmpty()) {
+                deepFocusDetails.visibility = View.VISIBLE
+                deepFocusDetails.removeAllViews()
+                metrics.deepFocusBlocks.forEachIndexed { index, block ->
+                    val textView =
+                            TextView(this).apply {
+                                text =
+                                        "Block ${index + 1}: ${formatDateTime(block.startAt)} - ${formatDateTime(block.endAt)} (${formatMs(block.durationMs.toLong())})"
+                                textSize = 12f
+                                setPadding(32, 4, 0, 4)
+                            }
+                    deepFocusDetails.addView(textView)
+                }
+            } else {
+                deepFocusDetails.visibility = View.GONE
             }
         } else {
-            deepFocusDetails.visibility = View.GONE
+            findViewById<TextView>(R.id.interactionIntensityLabel)?.text = "Behavior Metrics"
+            findViewById<TextView>(R.id.interactionIntensityValue)?.text =
+                    "Computed downstream from the event stream"
+            findViewById<LinearLayout>(R.id.deepFocusBlocksDetails)?.visibility = View.GONE
         }
 
         // Notification Summary
