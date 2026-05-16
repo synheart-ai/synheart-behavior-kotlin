@@ -149,7 +149,7 @@ class SessionTrackerTest {
     }
 
     @Test
-    fun `getSessionSummary includes typing session summary when typing events present`() {
+    fun `getSessionSummary does not compute typing session summary locally`() {
         val typingEvent = BehaviorEvent.typing(
             sessionId = sessionId,
             typingTapCount = 30,
@@ -171,10 +171,9 @@ class SessionTrackerTest {
         tracker.recordEvent(typingEvent)
         val summary = tracker.getSessionSummary(emptyMap(), emptyMap(), emptyMap())
 
-        assertNotNull(summary.typingSessionSummary)
-        assertEquals(1, summary.typingSessionSummary!!.typingSessionCount)
-        assertEquals(1, summary.typingSessionSummary!!.individualTypingSessions.size)
-        assertEquals(30, summary.typingSessionSummary!!.individualTypingSessions[0].typingTapCount)
+        // typingSessionSummary is computed downstream, not in the SDK. The
+        // raw typing events are still emitted to consumers.
+        assertNull(summary.typingSessionSummary)
     }
 
     private fun createTestEvent(type: BehaviorEventType): BehaviorEvent {

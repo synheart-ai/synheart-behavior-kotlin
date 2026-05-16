@@ -1,8 +1,6 @@
 package ai.synheart.behavior.internal
 
 import ai.synheart.behavior.*
-import ai.synheart.behavior.TypingMetrics
-import ai.synheart.behavior.TypingSessionSummary
 import android.content.Context
 import android.content.res.Configuration
 import android.net.ConnectivityManager
@@ -147,24 +145,18 @@ internal class SessionTracker(
         val endDoNotDisturb = isDoNotDisturbEnabled()
         val endCharging = isCharging()
 
-        // Compute notification summary from events
+        // Raw counts only. Derived rates (ignore_rate, clustering_index),
+        // window-level behavioral metrics (distraction_score, burstiness,
+        // focus_hint, …), and the typing session summary are computed
+        // downstream from the emitted event stream.
         val notificationEvents = events.filter { it.eventType == BehaviorEventType.NOTIFICATION }
         val notificationCount = notificationEvents.size
         val notificationIgnored =
                 notificationEvents.count { (it.metrics["action"] as? String) == "ignored" }
-        val notificationIgnoreRate =
-                if (notificationCount > 0) {
-                    notificationIgnored.toDouble() / notificationCount
-                } else 0.0
-        val notificationClusteringIndex = computeNotificationClusteringIndex(notificationEvents)
 
-        // Compute call summary
         val callEvents = events.filter { it.eventType == BehaviorEventType.CALL }
         val callCount = callEvents.size
         val callIgnored = callEvents.count { (it.metrics["action"] as? String) == "ignored" }
-
-        // Window-level behavioral metrics (distraction_score, burstiness, focus_hint, etc.)
-        // are computed downstream from raw events — not duplicated here.
 
         // Device Context
         val deviceContext =
@@ -178,13 +170,15 @@ internal class SessionTracker(
         val activitySummary =
                 ActivitySummary(totalEvents = eventCount.get(), appSwitchCount = appSwitchCount)
 
-        // Notification Summary
+        // Notification Summary — raw counts only.
+        // notificationIgnoreRate / notificationClusteringIndex left at 0.0
+        // for the runtime to overwrite.
         val notificationSummary =
                 NotificationSummary(
                         notificationCount = notificationCount,
                         notificationIgnored = notificationIgnored,
-                        notificationIgnoreRate = notificationIgnoreRate,
-                        notificationClusteringIndex = notificationClusteringIndex,
+                        notificationIgnoreRate = 0.0,
+                        notificationClusteringIndex = 0.0,
                         callCount = callCount,
                         callIgnored = callIgnored
                 )
@@ -197,29 +191,9 @@ internal class SessionTracker(
                         charging = endCharging
                 )
 
-        // Pass through per-typing-session metrics (per-event data, not window aggregation)
-        val typingEvents = events.filter { it.eventType == BehaviorEventType.TYPING }
-        val individualTypingSessions = typingEvents.map { event ->
-            val m = event.metrics
-            TypingMetrics(
-                    startAt = (m["start_at"] as? String) ?: "",
-                    endAt = (m["end_at"] as? String) ?: "",
-                    duration = (m["duration"] as? Number)?.toInt() ?: 0,
-                    deepTyping = (m["deep_typing"] as? Boolean) ?: false,
-                    typingTapCount = (m["typing_tap_count"] as? Number)?.toInt() ?: 0,
-                    typingSpeed = (m["typing_speed"] as? Number)?.toDouble() ?: 0.0,
-                    meanInterTapIntervalMs = (m["mean_inter_tap_interval_ms"] as? Number)?.toDouble() ?: 0.0,
-                    typingCadenceVariability = (m["typing_cadence_variability"] as? Number)?.toDouble() ?: 0.0,
-                    typingCadenceStability = (m["typing_cadence_stability"] as? Number)?.toDouble() ?: 0.0,
-                    typingGapCount = (m["typing_gap_count"] as? Number)?.toInt() ?: 0,
-                    typingGapRatio = (m["typing_gap_ratio"] as? Number)?.toDouble() ?: 0.0,
-                    typingBurstiness = (m["typing_burstiness"] as? Number)?.toDouble() ?: 0.0,
-                    typingActivityRatio = (m["typing_activity_ratio"] as? Number)?.toDouble() ?: 0.0,
-                    typingInteractionIntensity = (m["typing_interaction_intensity"] as? Number)?.toDouble() ?: 0.0
-            )
-        }
-
-        // Motion State will be computed by SynheartBehavior after inference
+        // Motion State will be computed by SynheartBehavior after inference.
+        // typingSessionSummary is computed downstream from the emitted
+        // typing events.
         val motionState: MotionState? = null
 
         return BehaviorSessionSummary(
@@ -237,45 +211,13 @@ internal class SessionTracker(
                 behavioralMetrics = null,
                 notificationSummary = notificationSummary,
                 systemState = systemState,
-                typingSessionSummary = TypingSessionSummary(
-                        typingSessionCount = individualTypingSessions.size,
-                        individualTypingSessions = individualTypingSessions
-                ),
+                typingSessionSummary = null,
                 motionData = motionData
         )
     }
 
     companion object {
         private const val TAG = "SessionTracker"
-    }
-
-    private fun computeNotificationClusteringIndex(
-            notificationEvents: List<BehaviorEvent>
-    ): Double {
-        if (notificationEvents.size < 2) return 0.0
-
-        val intervals = mutableListOf<Long>()
-        for (i in 1 until notificationEvents.size) {
-            try {
-                val prevTime = Instant.parse(notificationEvents[i - 1].timestamp).toEpochMilli()
-                val currTime = Instant.parse(notificationEvents[i].timestamp).toEpochMilli()
-                intervals.add(currTime - prevTime)
-            } catch (e: Exception) {
-                // Skip invalid timestamps
-            }
-        }
-
-        if (intervals.isEmpty()) return 0.0
-
-        val mean = intervals.average()
-        if (mean == 0.0) return 0.0
-
-        val variance = intervals.map { (it - mean) * (it - mean) }.average()
-        val stdDev = kotlin.math.sqrt(variance)
-        val cv = if (mean > 0) stdDev / mean else 0.0
-
-        // Clustering index: 1 - normalized CV
-        return (1.0 - (cv / 10.0).coerceIn(0.0, 1.0)).coerceIn(0.0, 1.0)
     }
 
     private fun getScreenBrightness(): Float {
