@@ -10,7 +10,7 @@
 > [CONTRIBUTING.md](CONTRIBUTING.md) for the rationale and how to contribute
 > via issues. Security reports go through [SECURITY.md](SECURITY.md).
 
-A privacy-preserving mobile SDK that collects digital behavioral signals from smartphones. These timing-based signals represent biobehavioral markers correlated with cognitive and emotional states, especially focus, stress, engagement, and fatigue.
+A privacy-preserving mobile SDK that collects digital behavioral signals from smartphones. The SDK models how users interact with digital systems — timing, rhythm, switching, and fragmentation — without ever accessing content, text, or personal data. Downstream consumers turn these raw signals into per-session aggregates and higher-level inferences.
 
 ## Features
 
@@ -50,7 +50,7 @@ dependencies {
 This SDK is **self-contained** and does **not** require bundling any native `.so` libraries.
 
 - Motion inference uses ONNX Runtime via the `onnxruntime-android` Gradle dependency.
-- This repo intentionally does **not** ship or vendor Flux binaries.
+- No other native binaries are bundled or vendored.
 
 ## Quick Start
 
@@ -212,9 +212,9 @@ The SDK collects six types of behavioral events:
 - **Swipe**: Direction, distance, velocity, acceleration
 - **Notification**: Received, opened, ignored (requires permission)
 - **Call**: Answered, ignored, dismissed (requires permission)
-- **Typing**: Comprehensive typing session metrics including speed, cadence, burstiness, deep typing detection, and (from Flux) clipboard activity rate and correction rate
+- **Typing**: Comprehensive typing session metrics including speed, cadence, burstiness, and deep typing detection. Clipboard activity rate and correction rate are derived downstream from per-typing-session counts on each event.
 
-**Note**: App switch events (`APP_SWITCH`) are tracked internally and sent to Flux for task switch calculations, but are not displayed as one of the six event types in event streams or UI. App switch count is available in session summaries via `activitySummary.appSwitchCount`.
+**Note**: App switch events (`APP_SWITCH`) are tracked internally and emitted on the event stream for downstream task-switch calculations, but are not displayed as one of the six event types in UI lists. App switch count is available in session summaries via `activitySummary.appSwitchCount`.
 
 Each event includes:
 
@@ -351,7 +351,7 @@ android.util.Log.d("Behavior", "App Switches: ${summary.activitySummary.appSwitc
 android.util.Log.d("Behavior", "Notifications: ${summary.notificationSummary.notificationCount}")
 android.util.Log.d("Behavior", "Ignore Rate: ${summary.notificationSummary.notificationIgnoreRate}")
 
-// Typing session summary (from Flux; includes clipboard/correction rates)
+// Typing session summary (populated downstream from typing-event counts)
 summary.typingSessionSummary?.let { typing ->
     android.util.Log.d("Behavior", "Typing Sessions: ${typing.typingSessionCount}")
     android.util.Log.d("Behavior", "Average Speed: ${typing.averageTypingSpeed} taps/sec")
