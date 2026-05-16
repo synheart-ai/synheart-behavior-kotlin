@@ -31,7 +31,7 @@ Add to your `build.gradle`:
 
 ```gradle
 dependencies {
-    implementation 'ai.synheart:synheart-behavior:0.4.1'
+    implementation 'ai.synheart:synheart-behavior:0.5.0'
 }
 ```
 
@@ -514,6 +514,10 @@ The SDK never generates HSI directly — it collects and normalizes behavioral s
 ./gradlew lint
 ./gradlew assembleRelease
 ```
+
+## Documentation
+
+Full reference docs live at **[docs.synheart.ai/synheart-behavior/kotlin](https://docs.synheart.ai/synheart-behavior/kotlin)** — metric definitions, model card, threat model, error reference, and the cross-platform overview.
 
 ## Related Projects
 
