@@ -516,8 +516,12 @@ private constructor(private val context: Context, private var config: BehaviorCo
                 attentionCollector?.onUserActivity()
             }
 
-    /** Report a notification event. */
-    fun reportNotification(action: String = "received") =
+    /**
+     * Report a notification event. [sourceApp] is the posting package, which
+     * the engine reads as the interruption's source; pass it whenever the
+     * platform supplies it.
+     */
+    fun reportNotification(action: String = "received", sourceApp: String? = null) =
             lock.read {
                 if (!_isInitialized || isDisposed) {
                     android.util.Log.w(
@@ -537,21 +541,21 @@ private constructor(private val context: Context, private var config: BehaviorCo
                         "SynheartBehavior",
                         "reportNotification: reporting notification action=$action"
                 )
-                attentionCollector?.onNotificationReceived(action)
+                attentionCollector?.onNotificationReceived(action, sourceApp)
             }
 
     /** Report a notification ignored event. */
-    fun reportNotificationIgnored() =
+    fun reportNotificationIgnored(sourceApp: String? = null) =
             lock.read {
                 if (!_isInitialized || isDisposed) return@read
-                attentionCollector?.onNotificationIgnored()
+                attentionCollector?.onNotificationIgnored(sourceApp)
             }
 
     /** Report a notification opened event. */
-    fun reportNotificationOpened() =
+    fun reportNotificationOpened(sourceApp: String? = null) =
             lock.read {
                 if (!_isInitialized || isDisposed) return@read
-                attentionCollector?.onNotificationOpened()
+                attentionCollector?.onNotificationOpened(sourceApp)
             }
 
     /**

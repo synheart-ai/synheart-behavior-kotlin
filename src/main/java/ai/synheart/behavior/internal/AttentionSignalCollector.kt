@@ -440,8 +440,15 @@ internal class AttentionSignalCollector(
         )
     }
 
-    /** Called when a notification is received. */
-    fun onNotificationReceived(action: String = "received") {
+    /**
+     * Called when a notification is received.
+     *
+     * [sourceApp] is the posting package. It is what the engine reads as
+     * `NotificationReceived { source_app_id }` — without it the engine sees
+     * that an interruption arrived but not from where, and the app-category
+     * lookup that gives the interruption its weight has nothing to key on.
+     */
+    fun onNotificationReceived(action: String = "received", sourceApp: String? = null) {
         android.util.Log.d("AttentionSignalCollector", "onNotificationReceived: action=$action")
 
         // Only increment count for "received" action to avoid double counting
@@ -458,26 +465,40 @@ internal class AttentionSignalCollector(
         )
         emitEvent(
                 BehaviorEventType.NOTIFICATION,
-                mapOf("action" to action, "timestamp" to System.currentTimeMillis())
+                mapOf(
+                        "action" to action,
+                        "timestamp" to System.currentTimeMillis(),
+                        // Null is filtered out by emitEvent, so an unknown
+                        // source is absent rather than an empty string.
+                        "source_app" to sourceApp?.takeIf { it.isNotBlank() }
+                )
         )
     }
 
     /** Called when a notification is ignored. */
-    fun onNotificationIgnored() {
+    fun onNotificationIgnored(sourceApp: String? = null) {
         notificationIgnoredCount++
         // Emit "ignored" event without calling onNotificationReceived to avoid double counting
         emitEvent(
                 BehaviorEventType.NOTIFICATION,
-                mapOf("action" to "ignored", "timestamp" to System.currentTimeMillis())
+                mapOf(
+                        "action" to "ignored",
+                        "timestamp" to System.currentTimeMillis(),
+                        "source_app" to sourceApp?.takeIf { it.isNotBlank() }
+                )
         )
     }
 
     /** Called when a notification is opened. */
-    fun onNotificationOpened() {
+    fun onNotificationOpened(sourceApp: String? = null) {
         // Emit "opened" event without calling onNotificationReceived to avoid double counting
         emitEvent(
                 BehaviorEventType.NOTIFICATION,
-                mapOf("action" to "opened", "timestamp" to System.currentTimeMillis())
+                mapOf(
+                        "action" to "opened",
+                        "timestamp" to System.currentTimeMillis(),
+                        "source_app" to sourceApp?.takeIf { it.isNotBlank() }
+                )
         )
     }
 

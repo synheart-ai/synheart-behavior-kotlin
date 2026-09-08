@@ -113,9 +113,17 @@ internal class MotionSignalCollector(
             return
         }
 
-        // Register listeners with default sampling rate (SENSOR_DELAY_NORMAL = ~50Hz)
-        // For higher rates, use SENSOR_DELAY_FASTEST, but it may drain battery faster
-        val samplingRate = SensorManager.SENSOR_DELAY_NORMAL // ~50Hz (20ms intervals)
+        // 50 Hz, requested as an explicit period rather than a SENSOR_DELAY_*
+        // constant.
+        //
+        // This used to pass SENSOR_DELAY_NORMAL with a comment claiming ~50 Hz.
+        // SENSOR_DELAY_NORMAL is ~200 ms — about 5 Hz — so Android was sampling
+        // an order of magnitude slower than iOS (accelerometerUpdateInterval =
+        // 0.02), and slower than the >= 25 Hz the engine needs to reach a Ready
+        // motion baseline. The named constants are documented as hints the
+        // device may ignore; a microsecond period is the unambiguous request.
+        // SENSOR_DELAY_GAME also lands near 50 Hz, but says so nowhere.
+        val samplingRate = SAMPLING_PERIOD_US
 
         sensorManager?.registerListener(this, accelerometerSensor, samplingRate)
         sensorManager?.registerListener(this, gyroscopeSensor, samplingRate)
@@ -265,5 +273,10 @@ internal class MotionSignalCollector(
         accelerometerSamples.clear()
         gyroscopeSamples.clear()
         motionDataPoints.clear()
+    }
+
+    private companion object {
+        /** 20 ms → 50 Hz. */
+        const val SAMPLING_PERIOD_US = 20_000
     }
 }

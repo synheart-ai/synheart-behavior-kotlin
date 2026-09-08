@@ -182,7 +182,7 @@ class SynheartNotificationListenerService : NotificationListenerService() {
             if (behaviorInstance == null) {
                 Log.w(TAG, "Behavior instance is null! Notification will not be tracked.")
             }
-            behaviorInstance?.reportNotification("received")
+            behaviorInstance?.reportNotification("received", sbn.packageName)
         } else {
             Log.w(TAG, "onNotificationPosted: sbn is null")
         }
@@ -199,12 +199,12 @@ class SynheartNotificationListenerService : NotificationListenerService() {
         if (reason == REASON_CLICK && sbn != null) {
             if (shouldTrackNotification(sbn)) {
                 Log.d(TAG, "Reporting notification opened: ${sbn.packageName}")
-                behaviorInstance?.reportNotificationOpened()
+                behaviorInstance?.reportNotificationOpened(sbn.packageName)
             }
         } else if ((reason == REASON_CANCEL || reason == REASON_CANCEL_ALL) && sbn != null) {
             if (shouldTrackNotification(sbn)) {
                 Log.d(TAG, "Reporting notification ignored: ${sbn.packageName}")
-                behaviorInstance?.reportNotificationIgnored()
+                behaviorInstance?.reportNotificationIgnored(sbn.packageName)
             }
         }
     }
