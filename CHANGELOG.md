@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Android: one event per call, at its outcome.** A call used to emit when
+  it started ringing (`ringing`), again with its outcome (`answered` or
+  `ignored`), and once more when it hung up (`ended`). A consumer counting
+  call events saw every unanswered call twice and an answered call three
+  times. Only the outcome is emitted now, which is what the iOS collector
+  already did. Notifications are unchanged: an arrival (`received`) followed
+  by its outcome.
+
 ## [0.5.0] - 2026-05-15
 
 Aggregation-refactor pass. The SDK is now a thin event producer plus a

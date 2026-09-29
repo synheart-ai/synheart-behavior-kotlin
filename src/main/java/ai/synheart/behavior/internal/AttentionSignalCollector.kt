@@ -403,12 +403,17 @@ internal class AttentionSignalCollector(
     private fun handleCallStateChange(state: Int) {
         val currentTime = System.currentTimeMillis()
 
+        // A call emits ONE event, at its outcome: `answered` when it is picked
+        // up, or `ignored` when it stops ringing unanswered. It used to emit
+        // `ringing` as well when the call arrived and `ended` when it hung up,
+        // so a consumer counting call events saw every unanswered call twice
+        // and an answered call three times. The arrival and the hang-up are
+        // still tracked here for the state machine; they are not events.
         when (state) {
             TelephonyManager.CALL_STATE_RINGING -> {
-                // Incoming call
+                // Incoming call - remembered, not reported.
                 if (lastCallState == TelephonyManager.CALL_STATE_IDLE) {
                     callStartTime = currentTime
-                    emitCallEvent("ringing")
                 }
             }
             TelephonyManager.CALL_STATE_OFFHOOK -> {
@@ -418,14 +423,12 @@ internal class AttentionSignalCollector(
                 }
             }
             TelephonyManager.CALL_STATE_IDLE -> {
-                // Call ended or ignored
                 if (lastCallState == TelephonyManager.CALL_STATE_RINGING) {
-                    // Call was ringing but now idle - likely ignored
+                    // Rang and went idle without going off-hook: ignored.
                     emitCallEvent("ignored")
-                } else if (lastCallState == TelephonyManager.CALL_STATE_OFFHOOK) {
-                    // Call was active but now idle - call ended
-                    emitCallEvent("ended")
                 }
+                // OFFHOOK → IDLE is the hang-up of a call already reported as
+                // answered; nothing to emit.
                 callStartTime = null
             }
         }
