@@ -1,5 +1,43 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- No special permissions required - SDK only collects timing-based signals -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!--
+        Notification-listener registration for the interruption signals.
+
+        SynheartNotificationListenerService has always been written and
+        working; it was simply never registered by this library, so every host
+        had to copy the block into its own manifest and most did not. Android
+        then never bound the service, the collector was dead code, and
+        NotificationReceived reached the engine with action: None — on the one
+        platform that can actually observe the response (REASON_CLICK).
+
+        Declaring it here is deliberate: a host that adds this library has
+        opted into behavioural sensing, and requiring every one of them to copy
+        a block is what produced the gap. The service is inert until the person
+        grants notification access in system settings, which no app can do on
+        its own — the declaration only makes the app appear in that list.
+        `android:permission` guarantees only the system can bind it.
+
+        To keep it out of a merged manifest, a host adds to its own:
+
+            <service android:name="ai.synheart.behavior.SynheartNotificationListenerService"
+                     tools:node="remove" />
+
+        Play Store policy requires a declared use for
+        BIND_NOTIFICATION_LISTENER_SERVICE; that obligation sits with the host
+        app regardless of which manifest the block lives in.
+    -->
+    <uses-permission android:name="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE" />
+
+    <application>
+        <service
+            android:name="ai.synheart.behavior.SynheartNotificationListenerService"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
+    </application>
 </manifest>
 

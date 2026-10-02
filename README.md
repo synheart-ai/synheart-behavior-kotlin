@@ -31,7 +31,7 @@ Add to your `build.gradle`:
 
 ```gradle
 dependencies {
-    implementation 'ai.synheart:synheart-behavior:0.5.0'
+    implementation 'ai.synheart:synheart-behavior:0.6.0'
 }
 ```
 
@@ -41,7 +41,7 @@ dependencies {
 <dependency>
     <groupId>ai.synheart</groupId>
     <artifactId>synheart-behavior</artifactId>
-    <version>0.4.1</version>
+    <version>0.6.0</version>
 </dependency>
 ```
 

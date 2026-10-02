@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-10-02
+
+Minor bump, not a patch: the library manifest now declares the
+notification listener (it merges into every host), Android samples motion
+ten times faster, and call events are emitted once per call instead of two
+or three times.
+
+### Changed
+- **The library manifest declares `SynheartNotificationListenerService`**
+  (and `BIND_NOTIFICATION_LISTENER_SERVICE`), so hosts no longer copy the
+  block. It was never registered by the library, so in most hosts the
+  collector never ran and notification events reached the engine without an
+  outcome. The service stays inert until the person grants notification
+  access in system settings. To keep it out, a host adds
+  `<service android:name="ai.synheart.behavior.SynheartNotificationListenerService" tools:node="remove" />`.
+  The Play policy declaration for the permission stays with the host.
+
+### Fixed
+- **Android accelerometer at 50 Hz.** It passed `SENSOR_DELAY_NORMAL`, with a
+  comment claiming ~50 Hz; that constant is ~200 ms, about 5 Hz, below the
+  25 Hz the engine needs for a Ready motion baseline. It now requests an
+  explicit 20 000 µs period.
+- **Notification events carry `source_app`**, the posting package, from the
+  listener through the collector. `reportNotification`,
+  `reportNotificationIgnored` and `reportNotificationOpened` take an
+  optional `sourceApp`.
+- **Android: one event per call, at its outcome.** A call used to emit when
+  it started ringing (`ringing`), again with its outcome (`answered` or
+  `ignored`), and once more when it hung up (`ended`). A consumer counting
+  call events saw every unanswered call twice and an answered call three
+  times. Only the outcome is emitted now, which is what the iOS collector
+  already did. Notifications are unchanged: an arrival (`received`) followed
+  by its outcome.
+
 ## [0.5.0] - 2026-05-15
 
 Aggregation-refactor pass. The SDK is now a thin event producer plus a
@@ -65,6 +99,7 @@ bundled SVC model.
 - Android API 26+ (Android 8.0+)
 - Kotlin 2.0+, AGP 8.2+, Gradle 8.10+
 
-[Unreleased]: https://github.com/synheart-ai/synheart-behavior-kotlin/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/synheart-ai/synheart-behavior-kotlin/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/synheart-ai/synheart-behavior-kotlin/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/synheart-ai/synheart-behavior-kotlin/releases/tag/v0.5.0
 [0.4.1]: https://github.com/synheart-ai/synheart-behavior-kotlin/releases/tag/v0.4.1
